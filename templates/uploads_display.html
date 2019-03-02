@@ -1,0 +1,17 @@
+<html>
+   <head>
+      <title>Dosyalar</title>
+   </head>
+
+   <body>
+           {% for file in all_files %}
+           <form action="/download">
+              {{file}}
+              <input type = "hidden" name = "filename" value = "{{ file }}" />
+              <input type = "submit" name = "submit" value = "Download" />
+           </form>
+           <br>
+           {% endfor %}
+   </body>
+
+</html>

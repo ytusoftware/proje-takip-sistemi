@@ -1,0 +1,86 @@
+<html>
+    <head>
+
+        <style type="text/css">
+
+             body {
+               background-color: #f2f2f2;
+               text-align: center;
+              }
+
+             p.cl1 {
+                font-family: Arial Black,Arial Bold,Gadget,sans-serif;
+                font-weight: bold;
+                text-align: center;
+
+
+              }
+
+              h1 {
+
+                  margin-bottom: 60px;
+                  font-family:lucida sans unicode, lucida grande, sans-serif;
+
+              }
+
+              input[type=text] {
+
+                 box-sizing: border-box;
+                 border-radius: 4px;
+                 padding: 8px 10px;
+               }
+
+               input[type=password] {
+
+                  box-sizing: border-box;
+                  border-radius: 4px;
+                  padding: 8px 10px;
+                }
+
+              input[type=submit] {
+                  width: 20%;
+                  background-color: #4CAF50;
+                  color: white;
+                  padding: 12px 10px;
+                  margin-top: 15px;
+                  border-radius: 4px;
+                  cursor: pointer;
+
+               }
+
+             div {
+                 box-sizing: border-box;
+                 width: 600px;
+                 border: 5px solid #4CAF50;
+                 text-align: center;
+                 display: inline-block;
+                 margin-top: 140px;
+             }
+
+        </style>
+
+
+    </head>
+       <body>
+       <div>
+
+          <h1>Sisteme Kaydol</h1>
+           <br>
+          <form action="/register" method="post">
+               <p class="cl1">Öğrenci Numarası:</p>
+               <input autocomplete="off" type="text" name="username">
+               <br>
+               <p class="cl1">Şifre:</p>
+               <input autocomplete="off" type="password" name="password">
+               <br>
+               <p class="cl1">Şifre tekrar:</p>
+               <input autocomplete="off" type="password" name="password2">
+               <br>
+               <p class="cl1">E-posta: </p>
+               <input autocomplete="off" type="text" name="password2">
+               <br>
+               <input type="submit" value="Kaydol">
+          </form>
+        </div>
+       </body>
+</html>
