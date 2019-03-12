@@ -26,8 +26,7 @@ Session(app)
 UPLOAD_FOLDER = os.path.abspath(os.path.join(app.root_path, 'uploads'))
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-#Session token set ediliyor
-#app.config['SECRET_KEY'] = os.urandom(16)
+
 
 
 
@@ -36,59 +35,54 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def greeting():
     #return render_template("index.html")
     if session.get("logged_in"):
-        return render_template("index.html", username=session["username"])
+        return render_template("index.html")
 
     return redirect(url_for("login_handle"))
 
 
-
-#KULLANICI KAYDI ISLEMLERI ICIN
-@app.route('/register', methods = ["POST", "GET"])
-def register_handle():
-    if request.method == "GET":
-        return render_template("register.html",user_exist_flag=0)
-
-    else:
-        username = request.form['username']
-        password = request.form['password']
-
-        try:
-            User(username, generate_password_hash(password)).save_to_db()
-        except Exception as e:
-            return render_template("register.html",user_exist_flag=1)
-
-
-    session["logged_in"] = True
-    session["username"] = request.form['username']
-
-    return redirect(url_for("greeting"))
 
 
 #KULLANICI LOGIN HANDLE
 @app.route('/login', methods = ["GET","POST"])
 def login_handle():
     if request.method == "GET":
-        return render_template("login.html")
+        session["login_failure"] = False
+        return render_template("login.html",login_failure=session["login_failure"])
 
     else:
-        username = request.form['username']
+        #username_student_no can be username or student_no
+        username_student_no = request.form['username']
         password = request.form['password']
-        user = User.find_by_username(username)
+        user_type = request.form['tipsec']
+
+        if user_type == "student":
+            user = Student.find_by_student_no(username_student_no)
+
+        else:
+            user = Academician.find_by_username(username_student_no)
 
 
-    if user and check_password_hash(user.password, password):
-        session["logged_in"] = True
-        session["username"] = request.form['username']
-        return redirect(url_for("greeting"))  # user token?
-    return render_template("login.html")
+        #Mevcut kullanici objesi session'da kaydediliyor
+        session["user"] = user
+
+
+        if user and check_password_hash(user.password, password):
+            session["logged_in"] = True
+            return redirect(url_for("greeting"))  # user token?
+
+
+        session["login_failure"] = True
+        return render_template("login.html", login_failure=session["login_failure"])
+
 
 
 
 #LOGOUT HANDLE
 @app.route('/logout')
 def logout_handle():
-    session.pop("username", None)
     session.pop("logged_in", None)
+    session.pop("login_failure", None)
+    session.pop("user", None)
     return redirect(url_for("greeting"))
 
 
