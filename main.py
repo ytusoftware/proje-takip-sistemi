@@ -62,13 +62,13 @@ def login_handle():
             user = Academician.find_by_username(username_student_no)
 
 
-        #Mevcut kullanici objesi session'da kaydediliyor
-        session["user"] = user
-
 
         if user and check_password_hash(user.password, password):
+            #Mevcut kullanici objesi session'da kaydediliyor
+            session["user"] = user
             session["logged_in"] = True
-            return redirect(url_for("greeting"))  # user token?
+
+            return redirect(url_for("greeting"))
 
 
         session["login_failure"] = True
