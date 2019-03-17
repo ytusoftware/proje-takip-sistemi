@@ -1,51 +1,68 @@
+<!DOCTYPE html>
 <html>
-   <head>
-      <style type="text/css">
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta charset="utf-8">
+		<title>Ana Sayfa</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/Index/myStyle1.css') }}"/>
+		<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+		<!-- jQuery library -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
-          body {
-               background-color: #f2f2f2;
-          }
+		<!-- Latest compiled JavaScript -->
+		<script src="/static/js/bootstrap.min.js"></script>
+	</head>
+	<body>
+		<div class="container-fluid">
+			<div class="row bg-1">
+				<div class="col-sm-4 textCenter"><a href="/"><img src="/static/ytulogopng.png" class="img-circle img-responsive" width="200px;" height="200px;" ></a></div>
+				<div class="col-sm-8"><br/><br/><h2>Yıldız Teknik Üniversitesi Bilgisayar Mühendisliği</h2><h2>Proje Takip Sistemi</h2></div>
+			</div>
+		</div>
+		
+		<div class="wrapper">
+			<!-- Sidebar -->
+			<nav id="sidebar">
+				<ul class="list-unstyled components">
+					<p class="menuHeader">Menu</p>
+					<hr/>
+					<li>
+						<a href="/">Ana Sayfa</a>
+					</li>
+					<li>
+						<a href="/Duyurular">Duyurular</a>
+					</li>			
+					<li>
+						<a href="#Submenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Proje İşlemleri</a>
+						<ul class="collapse list-unstyled" id="Submenu">
+							<li>
+								<a href="/ProjeOnerileri">Proje Önerileri</a>
+							</li>
+							<li>
+								<a href="/Projem">Projem</a>
+							</li>
+						</ul>
+					</li>
+					<li>
+						<a href="/NotIslemleri">Not İşlemleri</a>
+					</li>
+					<li>
+						<a href="/myProfil">Profilim</a>			
+					</li>
+					<li>
+						<a href="/logout">Çıkış</a>
+					</li>
 
-          input[type=submit].smallred {
-                width: 6%;
-                background-color: #E74C3C;
-                color: white;
-                padding-top: 6px;
-                padding-bottom: 6px;
-                margin-bottom: 30px;
-                border-radius: 10px;
-                cursor: pointer;
-           }
-
-           div.sagcek {
-                text-align: right;
-           }
-
-           div.ortala {
-
-                text-align: center;
-           }
-
-      </style>
-   </head>
-
-   <body>
-
-         <div class="sagcek">
-              <form action="/logout">
-                   <input class="smallred" type="submit" value="Çıkış Yap">
-               </form>
-         </div>
-
-         <div class="ortala">
-               <form action = "/uploader" method = "POST"
-                   enctype = "multipart/form-data">
-                   <input type = "file" name = "filem" />
-                  <input type = "submit"/>
-                </form>
-         </div>
-
-
-
-   </body>
+				</ul>
+			</nav>
+			<!-- Page Content -->
+			<div id="content">
+					<div class="container-fluid">
+						<h3>Sisteme Hos Geldiniz...</h3>
+					</div>
+			</div>
+		</div> 		
+	</body>
 </html>
+
+
