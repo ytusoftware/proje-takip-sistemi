@@ -67,6 +67,7 @@ def login_handle():
             #Mevcut kullanici objesi session'da kaydediliyor
             session["user"] = user
             session["logged_in"] = True
+            session["username"] = "Ali"
 
             return redirect(url_for("greeting"))
 
