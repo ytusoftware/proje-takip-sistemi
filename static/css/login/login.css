@@ -1,0 +1,33 @@
+p.cl2 {
+
+        font-family: lucida sans unicode, lucida grande, sans-serif;
+        font-weight: bold;
+        font-size: 35px;
+        margin-bottom: 60px;
+
+
+
+}
+
+h1 {
+        border: 3px solid #4CAF50;
+        font-family: lucida sans unicode, lucida grande, sans-serif;
+        margin-bottom: 170px;
+        padding-left: 0px;
+
+}
+
+
+div.login-border {
+        border: 3px solid #4CAF50;
+        box-sizing: content-box;
+        padding-left: 150px;
+        padding-right: 150px;
+        display: inline-block;
+        margin-bottom: 30px;
+        margin-top: 70px;
+
+
+
+
+}
