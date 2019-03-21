@@ -161,7 +161,7 @@ def admin_index_handle():
                 return render_template("admin_index.html",template_values=json.dumps(template_values))
 
             except Exception as e:
-                global student_no_username
+                student_no_username = request.form["student_no_username"]
 
                 error_message = "Hatanin sebebi " + student_no_username + " kullanici adli/ogrenci nolu kullanicinin veri tabaninda bulunmasi olabilir."
 
