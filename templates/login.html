@@ -1,62 +1,22 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-        <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-        <style type="text/css">
-                p.cl2 {
 
-                        font-family: lucida sans unicode, lucida grande, sans-serif;
-                        font-weight: bold;
-                        font-size: 35px;
-                        margin-bottom: 60px;
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf-8">
+        <title>Ana Sayfa</title>
+        <link rel="stylesheet" href="/static/css/bootstrap.min.css">
 
-
-
-                }
-
-                h1 {
-                        border: 3px solid #4CAF50;
-                        font-family: lucida sans unicode, lucida grande, sans-serif;
-                        margin-bottom: 150px;
-                        padding-left: 0px;
-
-                }
-
-
-                div.login-border {
-                        border: 3px solid #4CAF50;
-                        box-sizing: content-box;
-                        padding-left: 150px;
-                        padding-right: 150px;
-                        display: inline-block;
-                        margin-bottom: 30px;
-
-
-
-
-                }
-        </style>
-
+        <!-- jQuery library -->
         <script type="text/javascript" src="/static/js/jquery-3.3.1.js"></script>
 
-        <script type="text/javascript">
-                $(document).ready(function() {
+        <!-- Latest compiled JavaScript -->
+        <script src="/static/js/bootstrap.min.js"></script>
+        <script async type="text/javascript" src="/static/js/login/login.js"></script>
+        <link rel="stylesheet" href="/static/css/login/login.css">
 
-                        $('input[type=radio][name=tipsec]').change(function(event) {
-                                //alert('Hi there!');
-                                if (this.value == 'student') {
-                                        $('#girisbaslik').text("Öğrenci Girişi");
-                                        $('#nickveyano').text("Öğrenci Numarası:");
-
-                                        //alert("ogrenci");
-                                } else if (this.value == 'academician') {
-                                        $('#girisbaslik').text("Akademisyen Girişi");
-                                        $('#nickveyano').text("Kullanıcı Adı:");
-                                        //alert("akademisyen");
-                                }
-                        });
-                });
-        </script>
+        <link rel="stylesheet" href="/static/css/bootstrap.min.css">
 
 </head>
 

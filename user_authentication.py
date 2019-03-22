@@ -1,4 +1,8 @@
-import sqlite3
+import os
+import psycopg2
+
+
+DATABASE_URL = os.environ['DATABASE_URL']
 
 
 class Project:
@@ -34,11 +38,12 @@ class Student():
 
 
     def get_project(self):
-        connection = sqlite3.connect('data.db')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
         cursor = connection.cursor()
 
         try:
-            data = cursor.execute('SELECT Student.project_id, project_name, project_type FROM Student,Project WHERE student_no=? AND Student.project_id=Project.project_id', (self.student_no,)).fetchone()
+            cursor.execute('SELECT Student.project_id, project_name, project_type FROM Student,Project WHERE student_no=%s AND Student.project_id=Project.project_id', (self.student_no,)).fetchone()
+            data=cursor.fetchone()
             if data:
                 return Project(data[0], data[1], data[2])
         finally:
@@ -48,11 +53,12 @@ class Student():
 
     #Gets student's project grade.
     def get_grade(self):
-        connection = sqlite3.connect('data.db')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
         cursor = connection.cursor()
 
         try:
-            data = cursor.execute('SELECT grade FROM Student WHERE student_no=?', (self.student_no,)).fetchone()
+            cursor.execute('SELECT grade FROM Student WHERE student_no=%s', (self.student_no,))
+            data = cursor.fetchone()
             if data:
                 return data[0]
         finally:
@@ -62,15 +68,16 @@ class Student():
 
     #Gets academician username
     def get_academician(self):
-        connection = sqlite3.connect('data.db')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
         cursor = connection.cursor()
 
         try:
-            data = cursor.execute(
-            'SELECT Academician.username FROM Student,Project,Academician WHERE student_no=? AND \
+            cursor.execute(
+            'SELECT Academician.username FROM Student,Project,Academician WHERE student_no=%s AND \
             Student.project_id=Project.project_id AND \
-            Project.username=Academician.username', (self.student_no,)).fetchone()
+            Project.username=Academician.username', (self.student_no,))
 
+            data = cursor.fetchone()
 
             if data:
 
@@ -88,13 +95,15 @@ class Student():
 
     #Gets students's appointment's id with the academician
     def get_appointment(self):
-        connection = sqlite3.connect('data.db')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
         cursor = connection.cursor()
 
         try:
-            data = cursor.execute('SELECT Student.appointment_id, Appointment.appointment_name, Appointment.appointment_date \
+            cursor.execute('SELECT Student.appointment_id, Appointment.appointment_name, Appointment.appointment_date \
             FROM Student,Appointment \
-            WHERE student_no=? AND Student.appointment_id=Appointment.appointment_id', (self.student_no,)).fetchone()
+            WHERE student_no=%s AND Student.appointment_id=Appointment.appointment_id', (self.student_no,))
+
+            data = cursor.fetchone()
 
             if data:
                 return Appointment(data[0], data[1], data[2])
@@ -117,11 +126,12 @@ class Student():
     #Bu metot objenin uye alanlarini sinif icerisinde set edip, objeyi return etmektedir.
     @classmethod
     def find_by_student_no(cls, student_no):
-        connection = sqlite3.connect('data.db')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
         cursor = connection.cursor()
 
         try:
-            data = cursor.execute('SELECT student_no,password,name,sname FROM Student WHERE student_no=?', (student_no,)).fetchone()
+            cursor.execute('SELECT student_no,password,name,sname FROM Student WHERE student_no=%s', (student_no,))
+            data = cursor.fetchone()
             if data:
                 #cls mevcut sinifin contructor ini temsil etmektedir
                 instance = cls(data[0], data[1], data[2], data[3])
@@ -143,15 +153,17 @@ class Academician():
 
     #Gets all projects that belong to academician
     def get_projects(self):
-        connection = sqlite3.connect('data.db')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
         cursor = connection.cursor()
 
 
         try:
-            data = cursor.execute('SELECT project_id,project_name,project_type \
+            cursor.execute('SELECT project_id,project_name,project_type \
             FROM Academician,Project \
-            WHERE Academician.username=? AND \
+            WHERE Academician.username=%s AND \
             Project.username=Academician.username', (self.username,))
+
+            data = cursor.fetchall()
 
             if data:
                 project_list = []
@@ -168,14 +180,16 @@ class Academician():
 
     #Gets Academician's students' numbers.
     def get_students(self):
-        connection = sqlite3.connect('data.db')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
         cursor = connection.cursor()
 
         try:
-            data = cursor.execute(
-            'SELECT student_no,Student.password,Student.name,Student.sname FROM Student,Project,Academician WHERE Academician.username=? AND \
+            cursor.execute(
+            'SELECT student_no,Student.password,Student.name,Student.sname FROM Student,Project,Academician WHERE Academician.username=%s AND \
             Academician.username=Project.username AND \
             Student.project_id=Project.project_id', (self.username,))
+
+            data = cursor.fetchall()
 
             if data:
                 student_list = []
@@ -191,15 +205,17 @@ class Academician():
 
     #Gets academician's appointments
     def get_appointments(self):
-        connection = sqlite3.connect('data.db')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
         cursor = connection.cursor()
 
 
         try:
-            data = cursor.execute('SELECT Appointment.appointment_id,appointment_name,appointment_date \
+            cursor.execute('SELECT Appointment.appointment_id,appointment_name,appointment_date \
              FROM Academician,Appointment \
-             WHERE Academician.username=? AND \
+             WHERE Academician.username=%s AND \
              Appointment.username=Academician.username', (self.username,))
+
+            data = cursor.fetchall()
 
             if data:
                 appointment_list = []
@@ -215,19 +231,19 @@ class Academician():
 
     #Sets project grade of student with given student_no
     def set_grade(self, student_no, grade):
-        connection = sqlite3.connect('data.db')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
         cursor = connection.cursor()
 
         try:
             #IN statement, guvenligi artirmak icin eklenmistir. Hocanin sadece kendine bagli bir ogrenciye not girisi yaptigindan emin olmak icin...
-            data = cursor.execute(
+            cursor.execute(
             'UPDATE Student \
-            SET grade=? \
-            WHERE student_no=? AND \
+            SET grade=%s \
+            WHERE student_no=%s AND \
             project_id IN ( \
             SELECT project_id \
             FROM Project,Academician \
-            WHERE Project.username=Academician.username AND Academician.username=?)', (grade, student_no, self.username))
+            WHERE Project.username=Academician.username AND Academician.username=%s)', (grade, student_no, self.username))
 
             return True
 
@@ -247,12 +263,13 @@ class Academician():
     #Bu metot objenin uye alanlarini sinif icerisinde set edip, objeyi return etmektedir.
     @classmethod
     def find_by_username(cls, username):
-        connection = sqlite3.connect('data.db')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
         cursor = connection.cursor()
 
 
         try:
-            data = cursor.execute('SELECT username,password,name,sname FROM Academician WHERE username=?', (username,)).fetchone()
+            cursor.execute('SELECT username,password,name,sname FROM Academician WHERE username=%s', (username,))
+            data = cursor.fetchone()
             if data:
                 instance = cls(data[0], data[1], data[2], data[3])
 
