@@ -37,7 +37,17 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def greeting():
     #return render_template("index.html")
     if session.get("logged_in"):
-        return render_template("index.html")
+
+        user = session["user"]
+        user_type= session["user_type"]
+
+        template_values = {
+        "name":user.name,
+        "sname":user.sname,
+        "user_type":user_type
+        }
+
+        return render_template("index.html", template_values=template_values )
 
     return redirect(url_for("login_handle"))
 
@@ -69,6 +79,7 @@ def login_handle():
             #Mevcut kullanici objesi session'da kaydediliyor
             session["user"] = user
             session["logged_in"] = True
+            session["user_type"] = request.form['tipsec']
 
             return redirect(url_for("greeting"))
 
