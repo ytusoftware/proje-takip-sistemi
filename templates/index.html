@@ -19,7 +19,7 @@
 				<div class="col-sm-8"><br/><br/><h2>Yıldız Teknik Üniversitesi Bilgisayar Mühendisliği</h2><h2>Proje Takip Sistemi</h2></div>
 			</div>
 		</div>
-		
+
 		<div class="wrapper">
 			<!-- Sidebar -->
 			<nav id="sidebar">
@@ -30,24 +30,103 @@
 						<a href="/">Ana Sayfa</a>
 					</li>
 					<li>
-						<a href="/Duyurular">Duyurular</a>
-					</li>			
-					<li>
-						<a href="#Submenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Proje İşlemleri</a>
-						<ul class="collapse list-unstyled" id="Submenu">
+						<a href="#DuyuruSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Duyurular</a>
+						<ul class="collapse list-unstyled" id="DuyuruSubmenu">
 							<li>
-								<a href="/ProjeOnerileri">Proje Önerileri</a>
+								<a href="#">Genel Duyurular</a>
 							</li>
+							{% if template_values["user_type"] == "student" %}
 							<li>
-								<a href="/Projem">Projem</a>
+								<a href="#">Proje Danışmanı Duyuruları</a>
 							</li>
+							{% else %}
+							<li>
+								<a href="#">Duyuru Yap</a>
+							</li>
+
+							<li>
+								<a href="#">Duyurularım</a>
+							</li>
+
+							{% endif %}
+
 						</ul>
 					</li>
 					<li>
-						<a href="/NotIslemleri">Not İşlemleri</a>
+						<a href="#ProjeSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Proje İşlemleri</a>
+						<ul class="collapse list-unstyled" id="ProjeSubmenu">
+							<li>
+								<a href="#">Akademisyen Proje Önerileri</a>
+							</li>
+							{% if template_values["user_type"] == "student" %}
+							<li>
+								<a href="#">Form-2 Gönder</a>
+							</li>
+							<li>
+								<a href="#">Projem</a>
+							</li>
+							<li>
+								<a href="#">Proje Raporu Gönder</a>
+							</li>
+							<li>
+								<a href="#">Gönderilen Proje Raporları</a>
+							</li>
+
+							{% else %}
+							<li>
+								<a href="#">Onay Bekleyen Form-2</a>
+							</li>
+							<li>
+								<a href="#">Proje Öner</a>
+							</li>
+							<li>
+								<a href="#">Önerilen Projelerim</a>
+							</li>
+							<li>
+								<a href="#">Öğrenci Proje Raporları Görüntüle</a>
+							</li>
+							{% endif %}
+						</ul>
 					</li>
 					<li>
-						<a href="/myProfil">Profilim</a>			
+						<a href="#RandevuSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Randevu İşlemleri</a>
+						<ul class="collapse list-unstyled" id="RandevuSubmenu">
+							{% if template_values["user_type"] == "student" %}
+							<li>
+								<a href="#">Randevu Talep Et</a>
+							</li>
+							<li>
+								<a href="#">Randevum</a>
+							</li>
+							{% else %}
+							<li>
+								<a href="#">Randevu Talepleri</a>
+							</li>
+							<li>
+								<a href="#">Randevularım</a>
+							</li>
+							{% endif %}
+						</ul>
+					</li>
+					<li>
+						{% if template_values["user_type"] == "student" %}
+						<a href="#">Proje Notu Görüntüle</a>
+
+						{% else %}
+						<a href="#NotSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Not İşlemleri</a>
+						<ul class="collapse list-unstyled" id="NotSubmenu">
+							<li>
+								<a href="#">Proje Not Girişi Yap</a>
+							</li>
+							<li>
+								<a href="#">Proje Notları Görüntüle</a>
+							</li>
+						</ul>
+						{% endif %}
+
+					</li>
+					<li>
+						<a href="#">Profilim</a>
 					</li>
 					<li>
 						<a href="/logout">Çıkış</a>
@@ -58,11 +137,12 @@
 			<!-- Page Content -->
 			<div id="content">
 					<div class="container-fluid">
-						<h3>Sisteme Hos Geldiniz...</h3>
+						<h2>Merhaba <strong>{{ template_values["name"].decode('utf-8') }} {{ template_values["sname"].decode('utf-8') }}</strong>,</h2>
+						<h3>Sisteme hoş geldiniz.</h3>
+
+
 					</div>
 			</div>
-		</div> 		
+		</div>
 	</body>
 </html>
-
-
