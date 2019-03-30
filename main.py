@@ -364,7 +364,7 @@ def academician_propose_project_handler():
 
                 }
 
-                return render_template("propose_project.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr).encode('utf8') )
+                return render_template("propose_project.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
 
 
             except Exception as e:
@@ -433,7 +433,7 @@ def academician_propose_project_handler():
 
                 }
 
-                return render_template("propose_project.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr).encode('utf8') )
+                return render_template("propose_project.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
 
 
             except Exception as e:
