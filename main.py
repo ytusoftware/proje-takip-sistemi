@@ -292,7 +292,7 @@ def project_academician_proposals_handler():
 
                 }
 
-                return render_template("academician_proposals.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr).encode('utf8') )
+                return render_template("academician_proposals.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
 
 
             except Exception as e:
