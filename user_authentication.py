@@ -177,6 +177,23 @@ class Academician():
 
 
 
+    def propose_project(self, project_name, project_type):
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+        cursor = connection.cursor()
+
+
+        try:
+            cursor.execute('INSERT INTO Project(project_name, project_type, username)\
+            VALUES (%s,%s,%s)', (project_name, project_type, self.username) )
+
+
+        finally:
+            connection.commit()
+            connection.close()
+
+
+
+
 
     #Gets Academician's students' numbers.
     def get_students(self):

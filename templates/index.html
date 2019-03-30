@@ -11,6 +11,11 @@
 
 		<!-- Latest compiled JavaScript -->
 		<script src="/static/js/bootstrap.min.js"></script>
+
+		<!-- Buradaki bloga cesitli sayfalar dinamik olarak includelarini ekleyecek -->
+		{% block includes %}
+		{% endblock %}
+
 	</head>
 	<body>
 		<div class="container-fluid">
@@ -56,7 +61,7 @@
 						<a href="#ProjeSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Proje İşlemleri</a>
 						<ul class="collapse list-unstyled" id="ProjeSubmenu">
 							<li>
-								<a href="#">Akademisyen Proje Önerileri</a>
+								<a href="/project/academician_proposals?page=1">Akademisyen Proje Önerileri</a>
 							</li>
 							{% if template_values["user_type"] == "student" %}
 							<li>
@@ -77,7 +82,7 @@
 								<a href="#">Onay Bekleyen Form-2</a>
 							</li>
 							<li>
-								<a href="#">Proje Öner</a>
+								<a href="/project/propose_project">Proje Öner</a>
 							</li>
 							<li>
 								<a href="#">Önerilen Projelerim</a>
@@ -134,15 +139,16 @@
 
 				</ul>
 			</nav>
+			{% block content %}
 			<!-- Page Content -->
 			<div id="content">
-					<div class="container-fluid">
+
 						<h2>Merhaba <strong>{{ template_values["name"].decode('utf-8') }} {{ template_values["sname"].decode('utf-8') }}</strong>,</h2>
 						<h3>Sisteme hoş geldiniz.</h3>
 
 
-					</div>
 			</div>
+			{% endblock %}
 		</div>
 	</body>
 </html>
