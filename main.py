@@ -96,6 +96,7 @@ def logout_handle():
     session.pop("logged_in", None)
     session.pop("login_failure", None)
     session.pop("user", None)
+    session.pop("user_type", None)
     return redirect(url_for("greeting"))
 
 
@@ -238,6 +239,232 @@ def admin_logout_handle():
     session.pop("admin_username",None)
     session.pop("admin_password",None)
     return redirect(url_for("admin_login_handle"))
+
+
+
+
+
+#Proje Islemleri menusu/Akademisyen Proje Onerileri icin handler
+@app.route('/project/academician_proposals',methods=["GET"])
+def project_academician_proposals_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #NOT: Bu kisimda SQL sorgusu yazilmistir. Cunku Genel Duyurularin listelenebilmesi icin Student veya Academician instance
+            #methodlari kullanilamaz, bunun icin generic bir method yazilmadi.
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+            page_offset = int(request.args.get("page"))
+            query_offset = (page_offset-1)*10
+
+            try:
+                cursor.execute('SELECT * FROM Project OFFSET %s LIMIT 11',(query_offset,))
+
+                #data listelerin listesi
+                data = cursor.fetchall()
+
+                num_of_projects = len(data)
+
+                disable_next_page = False
+
+                if num_of_projects < 11:
+                    disable_next_page = True
+
+
+
+                #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
+                template_values_index = {
+                    "user_type":session["user_type"]
+
+                }
+
+
+                #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+                template_values_curr = {
+                    "error":False,
+                    "projects":data,
+                    "disable_next_page":disable_next_page,
+                    "init_page_num":int(request.args.get("page"))
+
+                }
+
+                return render_template("academician_proposals.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+            except Exception as e:
+
+                #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
+                template_values_index = {
+                    "user_type":session["user_type"]
+
+                }
+
+
+                #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+                template_values_curr = {
+                    "error":True
+
+                }
+
+                return render_template("academician_proposals.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+            finally:
+                connection.close()
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+
+#Akademisyene ozel, Proje Islemleri menusu/Proje Oner icin handler
+@app.route('/project/propose_project',methods=["GET","POST"])
+def academician_propose_project_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+            try:
+
+                #Ogrenciler bu sayfaya girmeye calisirsa ana sayfaya atiliyor
+                if session["user_type"] == "student":
+                    return redirect(url_for("greeting"))
+
+
+
+                #Mevcut sessiondan akademisyen nesnesi cekiliyor.
+                academician = session["user"]
+                project_name = request.form["project_name"]
+                project_type = request.form["tipsec"]
+
+
+                #Veri tabani kaydi
+                academician.propose_project(project_name, project_type)
+
+
+
+
+                #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
+                template_values_index = {
+                    "user_type":session["user_type"]
+
+                }
+
+
+                #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+                template_values_curr = {
+                    "success":False
+
+                }
+
+                return render_template("propose_project.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+            except Exception as e:
+
+                #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
+                template_values_index = {
+                    "user_type":session["user_type"]
+
+                }
+
+
+                #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+                template_values_curr = {
+                    "success":False
+
+                }
+
+                return render_template("propose_project.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+    if request.method == "POST":
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+
+            try:
+
+                #Ogrenciler sayfaya girmeye calisirsa ana sayfaya atiliyor
+                if session["user_type"] == "student":
+                    return redirect(url_for("greeting"))
+
+
+
+                #Mevcut sessiondan akademisyen nesnesi cekiliyor.
+                academician = session["user"]
+                project_name = request.form["project_name"]
+                project_type = request.form["tipsec"]
+
+
+                #Veri tabani kaydi
+                academician.propose_project(project_name, project_type)
+
+
+
+
+                #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
+                template_values_index = {
+                    "user_type":session["user_type"]
+
+                }
+
+
+                #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+                template_values_curr = {
+                    "success":True
+
+                }
+
+                return render_template("propose_project.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+            except Exception as e:
+
+                #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
+                template_values_index = {
+                    "user_type":session["user_type"]
+
+                }
+
+
+                #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+                template_values_curr = {
+                    "Success":False
+
+                }
+
+                return render_template("propose_project.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+            finally:
+                connection.close()
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
 
 
 
