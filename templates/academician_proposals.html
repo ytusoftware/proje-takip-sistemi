@@ -1,0 +1,81 @@
+{% extends "index.html" %}
+
+<!-- external js ve css dosyalari include etmek icin -->
+{% block includes %}
+<!--
+<link rel="stylesheet" href="/static/css/academician_proposals/academician_proposals.css">
+-->
+
+<!-- Table sorter CSS -->
+<link rel="stylesheet" href="/static/css/theme.bootstrap_4.css">
+
+<script type="text/javascript" src="/static/js/academician_proposals/academician_proposals.js"></script>
+
+<!-- Table sorter js -->
+<script type="text/javascript" src="/static/js/jquery.tablesorter.js"></script>
+<script type="text/javascript" src="/static/js/jquery.tablesorter.widgets.js"></script>
+
+
+<!-- NOT: Bu js kodu burada yazilmak zorunda. External js dosyasina python degiskenlerini (jinja2 aracaligiyla gelen) aktarmak icin -->
+<script type="text/javascript">
+        var template_values_curr = JSON.parse('{{ template_values_curr|safe }}');
+        //console.log(template_values_curr["projects"][0][1]);
+        pass_func(template_values_curr);
+</script>
+
+{% endblock %}
+
+<!-- Ortadaki degisen alan icin HTML kodlar -->
+{% block content %}
+
+
+<div class="container-fluid">
+        <div class="row">
+                <div class="col">
+                        <h2>Akademisyen Proje Önerileri</h2>
+                </div>
+
+        </div>
+
+
+        <div class="row">
+
+                <table id="project-list" class="tablesorter-bootstrap">
+                        <thead>
+                                <tr>
+                                        <th scope="col">Proje No</th>
+                                        <th scope="col">Proje Adı</th>
+                                        <th scope="col">Proje Tipi</th>
+                                        <th scope="col">Akademisyen</th>
+                                </tr>
+                        </thead>
+                        <tbody>
+                                <!-- Projeler dinamik olarak listelenecek -->
+                        </tbody>
+                </table>
+
+        </div>
+        <div class="row">
+                <nav aria-label="...">
+                        <ul class="pagination">
+                                <li id="pageprev-li" class="page-item disabled">
+                                        <a id="pageprev" class="page-link" href="" aria-label="Önceki">
+                                                <span aria-hidden="true">&laquo;</span>
+                                                <span class="sr-only">Previous</span>
+                                        </a>
+                                </li>
+                                <li class="page-item disabled"><a id="pagenum" class="page-link">1</a></li>
+                                <li id="pagenext-li" class="page-item">
+                                        <a id="pagenext" class="page-link" href="/project/academician_proposals?page=2" aria-label="Sonraki">
+                                                <span aria-hidden="true">&raquo;</span>
+                                                <span class="sr-only">Next</span>
+                                        </a>
+                                </li>
+                        </ul>
+                </nav>
+
+        </div>
+
+</div>
+
+{% endblock %}

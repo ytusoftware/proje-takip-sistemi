@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf-8">
+        <title>Ana Sayfa</title>
+        <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_login/admin_login.css') }}" /> -->
+        <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+
+        <!-- jQuery library -->
+        <script type="text/javascript" src="/static/js/jquery-3.3.1.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="/static/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="/static/js/admin_login/admin_login.js"></script>
+        <link rel="stylesheet" href="/static/css/admin_login/admin_login.css">
+</head>
+
+<body>
+        <div class="text-center">
+
+
+                <img width="130px" height="130px" src="/static/ytulogopng.png" alt="YtuLogo" />
+                <h1>Ara ve Bitirme Proje Takip Sistemi</h1>
+        </div>
+        <div class="text-center">
+
+
+
+
+                <div class="login-border">
+
+                        <form action="/admin/login" method="post">
+                                <p id="girisbaslik" class="cl2">Admin Girişi</p>
+                                {% if admin_login_failure %}
+                                <p class="text-danger">Kullanıcı adı ve/veya şifre hatalı.</p>
+                                {% endif %}
+                                <p id="admin_username">Kullanıcı Adı</p>
+                                <div class="col-xs-3">
+                                        <input placeholder="Kullanıcı Adı" class="form-control" autocomplete="off" type="text" name="admin_username">
+                                </div>
+                                <br>
+                                <p>Şifre</p>
+                                <div class="col-xs-3">
+                                        <input placeholder="Şifre" class="form-control" autocomplete="off" type="password" name="admin_password">
+                                </div>
+                                <div class="girisyap">
+                                        <input class="btn btn-primary" type="submit" value="Giriş Yap">
+                                </div>
+
+
+                        </form>
+
+                </div>
+
+        </div>
+
+
+</body>
+
+</html>
