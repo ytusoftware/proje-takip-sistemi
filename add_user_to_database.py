@@ -28,7 +28,7 @@ class Admin:
 
 
     def write_db(self,user_type,student_no_username, name, sname):
-        connection = psycopg2.connect(self.DATABASE_URL, sslmode='require')
+        connection = psycopg2.connect(self.DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
 
 
