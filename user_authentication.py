@@ -38,7 +38,7 @@ class Student():
 
 
     def get_project(self):
-        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
 
         try:
@@ -53,7 +53,7 @@ class Student():
 
     #Gets student's project grade.
     def get_grade(self):
-        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
 
         try:
@@ -68,7 +68,7 @@ class Student():
 
     #Gets academician username
     def get_academician(self):
-        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
 
         try:
@@ -95,7 +95,7 @@ class Student():
 
     #Gets students's appointment's id with the academician
     def get_appointment(self):
-        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
 
         try:
@@ -126,7 +126,7 @@ class Student():
     #Bu metot objenin uye alanlarini sinif icerisinde set edip, objeyi return etmektedir.
     @classmethod
     def find_by_student_no(cls, student_no):
-        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
 
         try:
@@ -153,7 +153,7 @@ class Academician():
 
     #Gets all projects that belong to academician
     def get_projects(self):
-        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
 
 
@@ -197,7 +197,7 @@ class Academician():
 
     #Gets Academician's students' numbers.
     def get_students(self):
-        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
 
         try:
@@ -222,7 +222,7 @@ class Academician():
 
     #Gets academician's appointments
     def get_appointments(self):
-        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
 
 
@@ -248,7 +248,7 @@ class Academician():
 
     #Sets project grade of student with given student_no
     def set_grade(self, student_no, grade):
-        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
 
         try:
@@ -280,7 +280,7 @@ class Academician():
     #Bu metot objenin uye alanlarini sinif icerisinde set edip, objeyi return etmektedir.
     @classmethod
     def find_by_username(cls, username):
-        connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
 
 
