@@ -99,8 +99,22 @@ def logout_handle():
     session.pop("user_type", None)
     return redirect(url_for("greeting"))
 
+#Profil Handle
+@app.route('/Profil')
+def show_profile():
+    #Giris yapildi mi???
+    if session.get("logged_in"):
+        user = session["user"]
+        template_values={
+            "user_type":session["user_type"]
+        }    
+        kisiselBilgiler={
+            "Ad" : user.name,"Soyad":user.sname
+        }   
+        return render_template("profil.html",infoAboutUser=kisiselBilgiler,template_values=(template_values))
 
-
+    #Giris yapilmadiysa giris sayfasina yonlendirilir.
+    return redirect(url_for("login_handle"))
 
 #ADMIN PANELI INDEX
 @app.route('/admin',methods=["GET","POST"])
@@ -174,7 +188,6 @@ def admin_index_handle():
 
             except Exception as e:
                 student_no_username = request.form["student_no_username"]
-
                 error_message = "Hatanin sebebi " + student_no_username + " kullanici adli/ogrenci nolu kullanicinin veri tabaninda bulunmasi olabilir."
 
 
@@ -460,11 +473,6 @@ def academician_propose_project_handler():
 
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
         return redirect(url_for("login_handle"))
-
-
-
-
-
 
 
 
