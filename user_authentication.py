@@ -202,19 +202,19 @@ class Academician():
 
         try:
             cursor.execute(
-            'SELECT student_no,Student.password,Student.name,Student.sname FROM Student,Project,Academician WHERE Academician.username=%s AND \
+            'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type FROM Student,Project,Academician WHERE Academician.username=%s AND \
             Academician.username=Project.username AND \
             Student.project_id=Project.project_id', (self.username,))
 
             data = cursor.fetchall()
+                
+            student_list = []
 
             if data:
-                student_list = []
-
                 for query_row in data:
                     student_list.append( Student(query_row[0], query_row[1], query_row[2], query_row[3]) )
 
-                return student_list
+            return student_list
 
         finally:
             connection.close()

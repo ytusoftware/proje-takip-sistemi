@@ -1,0 +1,32 @@
+{% extends "index.html" %}
+
+<!-- external js ve css dosyalari include etmek icin -->
+{% block includes %}
+
+{% endblock %}
+
+
+<!-- Ortadaki degisen alan icin HTML kodlar -->
+{% block content %}
+
+<div class="container-fluid">
+	<div class="card mx-auto mt-4" style="width: 20rem;">
+		<img class="card-img-top" src="/static/userPhoto.png" alt="Card image cap">
+	  <div class="card-body">
+			<h5 class="card-title">Kullanıcı Bilgileri</h5>
+			<ul>			
+			  {% for key, value in infoAboutUser.items() %}
+				<li>
+                    {% if value!=-1 %}
+				        <strong>{{ key }}:</strong> {{ value }}
+                    {% else %}
+                        <strong>{{ key }}:</strong> Girilmedi
+                    {% endif %}
+                </li>
+			 {% endfor %}
+			</ul>
+	  </div>
+	</div>
+</div>
+
+{% endblock %}

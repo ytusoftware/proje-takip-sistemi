@@ -116,6 +116,162 @@ def show_profile():
     #Giris yapilmadiysa giris sayfasina yonlendirilir.
     return redirect(url_for("login_handle"))
 
+#Akademisyenden proje alanlarin listesi
+@app.route('/Grades/NotGirisSayfasi',methods=["GET"])
+def ShowMyStudents():
+    if request.method=="GET":
+        if session.get("logged_in"):
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+            else:
+                user1 = session["user"]
+                template_values={
+                    "user_type":session["user_type"]
+                }    
+                akademisyenAdi = user1.username
+                academician = Academician.find_by_username(akademisyenAdi)
+                
+                connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+                
+                cursor = connection.cursor()
+                cursor.execute(
+                'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type FROM Student,Project,Academician WHERE Academician.username=%s AND \
+                Academician.username=Project.username AND \
+                Student.project_id=Project.project_id AND Student.grade is NULL', (akademisyenAdi,))
+
+                data = cursor.fetchall()
+                #students = academician.get_students()
+                #hocanin proje verdigi ogrencisi olmayabilir
+                num_of_students=len(data)
+                disable_next_page = False
+                if num_of_students < 11:
+                    disable_next_page = True
+                if((request.args.get("page"))==None):
+                    pageno=1
+                else:
+                    pageno=int(request.args.get("page"))
+                #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+                template_values_curr = {
+                    "error":False,
+                    "students":data,
+                    "disable_next_page":disable_next_page,
+                    "init_page_num":pageno
+                }            
+                return render_template("gradePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+#Girilen Notu Sisteme Ekleyelim
+@app.route('/Grades/NotuSistemeEkle',methods=["GET","POST"])
+def notuKaydet():
+    if request.method == 'GET': 
+        if session.get("logged_in"):
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+            else:
+                student_no = (request.args.get("sno"))
+                grade1 = int(request.args.get("grade"))
+                user = session["user"]
+                akademisyenAdi = user.username
+                academician = Academician.find_by_username(akademisyenAdi)
+
+                academician.set_grade(student_no,grade1)
+                
+                return redirect(url_for("ShowMyStudents"))
+
+
+        return redirect(url_for("login_handle"))
+    return redirect(url_for("ShowMyStudents"))
+
+#Akademisyenden proje notları girilmiş öğrenciler
+@app.route('/Grades/NotDüzenle',methods=["GET"])
+def ShowMyStudentsGrade():
+    if request.method=="GET":
+        if session.get("logged_in"):
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+            else:
+                user1 = session["user"]
+                template_values={
+                    "user_type":session["user_type"]
+                }    
+                akademisyenAdi = user1.username
+                academician = Academician.find_by_username(akademisyenAdi)
+                
+                connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+                
+                cursor = connection.cursor()
+                cursor.execute(
+                'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type,Student.grade FROM Student,Project,Academician WHERE Academician.username=%s AND \
+                Academician.username=Project.username AND \
+                Student.project_id=Project.project_id AND Student.grade is not NULL', (akademisyenAdi,))
+
+                data = cursor.fetchall()
+                #students = academician.get_students()
+                #hocanin proje verdigi ogrencisi olmayabilir
+                num_of_students=len(data)
+                disable_next_page = False
+                if num_of_students < 11:
+                    disable_next_page = True
+                if((request.args.get("page"))==None):
+                    pageno=1
+                else:
+                    pageno=int(request.args.get("page"))
+                #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+                template_values_curr = {
+                    "error":False,
+                    "students":data,
+                    "disable_next_page":disable_next_page,
+                    "init_page_num":pageno
+                }            
+                return render_template("gradePage2.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+#Ogrenci Kendi Notunu Görüntülemek Isterse
+@app.route('/Grades/MyGrade')
+def showMyGrade():
+    #Giris yapildi mi???
+    if session.get("logged_in"):
+        if(session["user_type"]=="student"):
+            user = session["user"]
+            std = Student.find_by_student_no(user.student_no)
+            myGrade1 = std.get_grade()
+            if(myGrade1==None):
+                myGrade1 = -1 
+            template_values={
+                "user_type":session["user_type"]
+            }    
+            kisiselBilgiler={
+                "Ad" : user.name,"Soyad":user.sname,"Notu":myGrade1
+            }   
+            return render_template("myGradePage.html",infoAboutUser=kisiselBilgiler,template_values=(template_values))
+        return redirect(url_for("greeting"))
+    #Giris yapilmadiysa giris sayfasina yonlendirilir.
+    return redirect(url_for("login_handle"))
+
+
+#Düzenlenen notu Sisteme Girelim
+@app.route('/Grades/GradeEdit',methods=["GET","POST"])
+def notuDüzelt():
+    if request.method == 'GET': 
+        if session.get("logged_in"):
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+            else:
+                student_no = (request.args.get("sno"))
+                grade1 = int(request.args.get("grade"))
+                user = session["user"]
+                akademisyenAdi = user.username
+                academician = Academician.find_by_username(akademisyenAdi)
+
+                academician.set_grade(student_no,grade1)
+                
+                return redirect(url_for("ShowMyStudentsGrade"))
+
+
+        return redirect(url_for("login_handle"))
+    return redirect(url_for("ShowMyStudentsGrade"))
+
 #ADMIN PANELI INDEX
 @app.route('/admin',methods=["GET","POST"])
 def admin_index_handle():
