@@ -58,10 +58,10 @@ function pass_func(template_values_curr) {
                 //İleri ve geri butonlari icin bulunulan sayfaya gore guncellemeler
                 var init_page_num = template_values_curr["init_page_num"]
 
-                updated_prev_page_url = "/project/academician_suggestions?page=" + (init_page_num-1).toString();
+                updated_prev_page_url = "/project/academician_proposals?page=" + (init_page_num-1).toString();
                 $("#pageprev").attr("href", updated_prev_page_url);
 
-                updated_next_page_url = "/project/academician_suggestions?page=" + (init_page_num+1).toString();
+                updated_next_page_url = "/project/academician_proposals?page=" + (init_page_num+1).toString();
                 $("#pagenext").attr("href", updated_next_page_url);
 
 

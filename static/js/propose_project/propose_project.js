@@ -1,10 +1,6 @@
 function pass_func(template_values_curr) {
         $(document).ready(function() {
 
-                /* Uyari mesajlari document ilk yukledinden disable ediliyor */
-                $('#danger_message').hide()
-                $('#success_message').hide()
-
 
                 /* Formun default submit edilmesi engelleniyor. Asagidaki gibi kontroller yapildiktan sonra manuel olarak submit ediliyor. */
                 $("#form-to-be-sent").on("submit", function() {
@@ -33,15 +29,27 @@ function pass_func(template_values_curr) {
 
                         /* Sorun var, hata mesaji basiliyor */
                         else {
-                                $('#danger_source').text(msg);
-                                $('#danger_message').show();
+                                $('#title').after('<div class="form-group row" id="danger_message">' +
+                                                        '<div class="alert alert-danger" role="alert">' +
+                                                                '<strong>Hata! </strong>' + '<label id="danger_source">' + msg +
+                                                        '</div>' +
+                                                  '</div>'
+                                            )
 
                         }
 
                 });
 
                 if (template_values_curr["success"]) {
-                        $('#success_message').show()
+                        $('#title').after('<div class="form-group row" id="success_message">' +
+                                                '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                                        'Proje başarılı bir şekilde sisteme eklendi. "Akademisyen Proje Önerileri" listesinden ulaşılabilir.' +
+                                                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'+
+                                                                '<span aria-hidden="true">&times;</span>' +
+                                                        '</button>'+
+                                                '</div>'+
+                                        '</div>'
+                                    )
                 }
 
 

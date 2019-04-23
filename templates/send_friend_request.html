@@ -1,0 +1,85 @@
+{% extends "index.html" %}
+
+<!-- external js ve css dosyalari include etmek icin -->
+{% block includes %}
+<!--
+<link rel="stylesheet" href="/static/css/propose_project/propose_project.css">
+-->
+
+
+<!-- Bootstrap-select plugin import -->
+<script src="/static/js/bootstrap-select.min.js"></script>
+<link rel="stylesheet" href="/static/css/bootstrap-select.min.css">
+
+
+<script type="text/javascript" src="/static/js/send_friend_request/send_friend_request.js"></script>
+
+<!-- NOT: Bu js kodu burada yazilmak zorunda. External js dosyasina python degiskenlerini (jinja2 aracaligiyla gelen) aktarmak icin -->
+<script type="text/javascript">
+        var template_values_curr = JSON.parse('{{ template_values_curr|safe }}');
+        pass_func(template_values_curr);
+</script>
+
+{% endblock %}
+
+
+<!-- Ortadaki degisen alan icin HTML kodlar -->
+{% block content %}
+
+
+<div class="container-fluid">
+
+        <div id="title" class="row mb-5">
+                <div class="col">
+                        <h2>Proje Arkadaşı Ekle</h2>
+                </div>
+
+        </div>
+
+
+        <form action="/project/send_friend_request" method="get" id="friend_request_form">
+                <div  class="form-group row ml-3">
+                        <select id="ogr_list" name="ogr_list" data-live-search="true" class="col-6 selectpicker">
+                                <option selected value="no_choice">Seçiniz</option>
+                        </select>
+                </div>
+
+
+                <div class="ml-5 form-group row">
+                        <!-- Button trigger modal -->
+                        <button type="button" class="ml-3 col-2 btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
+                                Arkadaşlık İsteği Yolla
+                        </button>
+                </div>
+
+
+        </form>
+
+
+
+        <!-- Onay alma icin modal window -->
+        <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                                <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLongTitle">Arkadaşlık İsteği Onayı</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                        </button>
+                                </div>
+                                <div class="modal-body">
+                                        Arkadaşlık isteği göndermek istediğinize emin misiniz?
+                                </div>
+                                <div class="modal-footer">
+                                        <button id="kaydet_button" type="button" class="btn btn-primary" data-dismiss="modal">Evet</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+                                </div>
+                        </div>
+                </div>
+        </div>
+
+
+</div>
+
+
+{% endblock %}
