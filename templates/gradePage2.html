@@ -1,0 +1,111 @@
+{% extends "index.html" %}
+
+<!-- external js ve css dosyalari include etmek icin -->
+{% block includes %}
+
+<!-- Table sorter CSS -->
+<link rel="stylesheet" href="/static/css/theme.bootstrap_4.css">
+
+<script type="text/javascript" src="/static/js/grades/listMyStudentsGrades.js"></script>
+
+<!-- Table sorter js -->
+<script type="text/javascript" src="/static/js/jquery.tablesorter.js"></script>
+<script type="text/javascript" src="/static/js/jquery.tablesorter.widgets.js"></script>
+
+
+<!-- NOT: Bu js kodu burada yazilmak zorunda. External js dosyasina python degiskenlerini (jinja2 aracaligiyla gelen) aktarmak icin -->
+<script type="text/javascript">
+        var template_values_curr = JSON.parse('{{ template_values_curr|safe }}');
+        pass_func(template_values_curr);
+</script>
+
+{% endblock %}
+
+<!-- Ortadaki degisen alan icin HTML kodlar -->
+{% block content %}
+
+
+<div class="container-fluid">
+        <div class="row">
+                <div class="col">
+                        <h2>Proje Notu Girilen Öğrenciler</h2>
+                </div>
+
+        </div>
+
+
+        <div class="row">
+
+                <table id="student-list" class="tablesorter-bootstrap">
+                        <thead>
+                                <tr>
+                                        <th scope="col">Öğrenci Numarası</th>
+                                        <th scope="col">Öğrenci Adı</th>
+                                        <th scope="col">Öğrenci Soyadı</th>
+                                        <th scope="col">Proje Adı</th>
+                                        <th scope="col">Proje Tipi</th>
+                                        <th scope="col">Not</th>
+                                </tr>
+                        </thead>
+                        <tbody>
+                                <!-- Projeler dinamik olarak listelenecek -->
+                        </tbody>
+                </table>
+
+        </div>
+        <div class="row">
+                <nav aria-label="...">
+                        <ul class="pagination">
+                                <li id="pageprev-li" class="page-item disabled">
+                                        <a id="pageprev" class="page-link" href="" aria-label="Önceki">
+                                                <span aria-hidden="true">&laquo;</span>
+                                                <span class="sr-only">Previous</span>
+                                        </a>
+                                </li>
+                                <li class="page-item disabled"><a id="pagenum" class="page-link">1</a></li>
+                                <li id="pagenext-li" class="page-item">
+                                        <a id="pagenext" class="page-link" href="/Grades/NotDüzenle?page=2" aria-label="Sonraki">
+                                                <span aria-hidden="true">&raquo;</span>
+                                                <span class="sr-only">Next</span>
+                                        </a>
+                                </li>
+                        </ul>
+                </nav>
+
+        </div>
+                <!-- Modal -->
+        <div class="modal fade" id="myModal" role="dialog">
+                <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                <div class="modal-header">
+                        <h4>Not Düzenle</h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                        <form action="/Grades/NotuSistemeEkle" method="post" id="form" name="notFormu">
+                                <div class="input-group">
+                                        <span class="input-group-text"><strong>No:</strong></span>
+                                        <input id="studentNoValue" type="text" class="form-control" name="studentNoValue" value="" disabled/>
+                                </div>
+                                <br/>
+                                <div class="input-group">
+                                        <div class="input-group-append">
+                                                <label class="input-group-text" for="inputGroupSelect02"><strong>Proje Notu:</strong></label>
+                                        </div>
+                                        <input id="grade" type="number" min="0" max="100" class="form-control" name="grade" value=""/>
+                                </div>
+                
+                        </form>
+        
+                </div>
+                <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Kapat</button>
+                        <button id="submit" class="btn btn-success" action="submit">Onayla</button>
+                </div>
+                </div>
+                </div>
+        </div>
+
+</div>
+
+{% endblock %}

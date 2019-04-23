@@ -141,23 +141,23 @@
 					</li>
 					<li>
 						{% if template_values["user_type"] == "student" %}
-						<a href="#">Proje Notu Görüntüle</a>
+						<a href="/Grades/MyGrade">Proje Notu Görüntüle</a>
 
 						{% else %}
 						<a href="#NotSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Not İşlemleri</a>
 						<ul class="collapse list-unstyled" id="NotSubmenu">
 							<li>
-								<a href="#">Proje Not Girişi Yap</a>
+								<a href="/Grades/NotGirisSayfasi?page=1">Proje Not Girişi Yap</a>
 							</li>
 							<li>
-								<a href="#">Proje Notları Görüntüle</a>
+								<a href="/Grades/NotDüzenle?page=1">Proje Notları Görüntüle</a>
 							</li>
 						</ul>
 						{% endif %}
 
 					</li>
 					<li>
-						<a href="#">Profilim</a>
+						<a href="/Profil">Profilim</a>
 					</li>
 					<li>
 						<a href="/logout">Çıkış</a>
