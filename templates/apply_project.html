@@ -1,0 +1,125 @@
+{% extends "index.html" %}
+
+<!-- external js ve css dosyalari include etmek icin -->
+{% block includes %}
+<!--
+<link rel="stylesheet" href="/static/css/propose_project/propose_project.css">
+-->
+
+
+<!-- Bootstrap-select plugin import -->
+<script src="/static/js/bootstrap-select.min.js"></script>
+<link rel="stylesheet" href="/static/css/bootstrap-select.min.css">
+
+
+<script type="text/javascript" src="/static/js/apply_project/apply_project.js"></script>
+
+<!-- NOT: Bu js kodu burada yazilmak zorunda. External js dosyasina python degiskenlerini (jinja2 aracaligiyla gelen) aktarmak icin -->
+<script type="text/javascript">
+        var template_values_curr = JSON.parse('{{ template_values_curr|safe }}');
+        pass_func(template_values_curr);
+</script>
+
+{% endblock %}
+
+
+<!-- Ortadaki degisen alan icin HTML kodlar -->
+{% block content %}
+
+
+<div class="container-fluid">
+
+        <div id="title" class="row mb-5">
+                <div class="col">
+                        <h2>Proje Başvurusu Yap</h2>
+                </div>
+
+        </div>
+
+
+        <form action="/project/apply_project" method="post" id="apply_form">
+                <div class="form-group row ml-1">
+                        <label class="col" for="proposal_type_select">1) Proje Öneri Tipi Seçiniz</label>
+
+                </div>
+
+                <div id="proposal_type_select_2" class="form-group row ml-4">
+                        <select name="proposal_type_select" class="col-2 custom-select" id="proposal_type_select">
+                                <option value="academician_proposal">Akademisyen Önerisi</option>
+                                <option selected value="student_proposal">Öğrenci Önerisi</option>
+                        </select>
+                </div>
+
+
+                <div name="student_proposal_display" class="form-group row ml-1 mt-5">
+                        <label class="col">2) Proje Adı Giriniz</label>
+
+                </div>
+
+                <div name="student_proposal_display" class="form-group row ml-4 ">
+                        <input class="col-6 form-control" type="text" placeholder="Proje adı..." name="project_name">
+                </div>
+
+                <div name="student_proposal_display" class="form-group row ml-1 mt-5">
+                        <label class="col">3) Proje Tipi Seçiniz</label>
+
+                </div>
+
+                <div name="student_proposal_display" class="form-group row ml-3">
+                        <select name="project_type_choice" class="col-3 custom-select">
+                                <option selected value="no_choice">Seçiniz</option>
+                                <option value="Ara">Ara</option>
+                                <option value="Bitirme">Bitirme</option>
+                        </select>
+
+                </div>
+
+                <div name="student_proposal_display" class="form-group row ml-1 mt-5">
+                        <label class="col">4) Akademisyen Seçiniz</label>
+
+                </div>
+
+
+                <div name="student_proposal_display" class="form-group row ml-3">
+                        <select name="academician_choice" data-live-search="true" class="col-6 selectpicker">
+                                <option selected value="no_choice">Seçiniz</option>
+                        </select>
+                </div>
+
+                <div class="form-group row">
+                        <!-- Button trigger modal -->
+                        <button type="button" class="mt-5 ml-4 col-2 btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
+                                Başvuru Yap
+                        </button>
+                </div>
+
+        </form>
+
+
+
+        <!-- Onay alma icin modal window -->
+        <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                                <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLongTitle">Proje Başvurusu Onayı</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                        </button>
+                                </div>
+                                <div class="modal-body">
+                                        Başvuruyu göndermek istediğinize emin misiniz?
+                                </div>
+                                <div class="modal-footer">
+                                        <button id="kaydet_button" type="button" class="btn btn-primary" data-dismiss="modal">Evet</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+                                </div>
+                        </div>
+                </div>
+        </div>
+
+
+</div>
+
+
+{% endblock %}

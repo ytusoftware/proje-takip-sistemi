@@ -1,0 +1,108 @@
+{% extends "index.html" %}
+
+<!-- external js ve css dosyalari include etmek icin -->
+{% block includes %}
+<!--
+<link rel="stylesheet" href="/static/css/propose_project/propose_project.css">
+-->
+
+<script type="text/javascript" src="/static/js/my_friend/my_friend.js"></script>
+
+<!-- NOT: Bu js kodu burada yazilmak zorunda. External js dosyasina python degiskenlerini (jinja2 aracaligiyla gelen) aktarmak icin -->
+<script type="text/javascript">
+        var template_values_curr = JSON.parse('{{ template_values_curr|safe }}');
+        pass_func(template_values_curr);
+</script>
+
+{% endblock %}
+
+
+<!-- Ortadaki degisen alan icin HTML kodlar -->
+{% block content %}
+
+
+<div class="container-fluid">
+
+        <div id="title" class="mb-5 row">
+
+                <div class="col">
+                        <h2>Proje Grup Arkadaşı</h2>
+                </div>
+
+        </div>
+
+        <div name="be_deleted" class="row ml-3">
+                <div class="col-4">
+                        <h5><u>Öğrenci Numarası</u></h5>
+                </div>
+        </div>
+
+        <div name="be_deleted" class="row ml-5 mb-5">
+                <div class="col">
+                        <label id="student_no"></label>
+                </div>
+        </div>
+
+        <div name="be_deleted" class="row ml-3">
+                <div class="col-4">
+                        <h5><u>Ad</u></h5>
+                </div>
+        </div>
+
+        <div name="be_deleted" class="row ml-5 mb-5">
+                <div class="col">
+                        <label id="student_name"></label>
+                </div>
+        </div>
+
+        <div name="be_deleted" class="row ml-3">
+                <div class="col-4">
+                        <h5><u>Soyad</u></h5>
+                </div>
+        </div>
+
+        <div name="be_deleted" class="row ml-5 mb-5">
+                <div class="col">
+                        <label id="student_sname"></label>
+                </div>
+        </div>
+
+
+
+        <div name="be_deleted" id="cancel_button" class="row ml-3">
+                <div class="col-3">
+                        <button type="button" class="btn btn-primary"  data-toggle="modal" data-target="#exampleModalCenter">Arkadaşı Sil</button>
+                </div>
+        </div>
+
+
+
+        <!-- Onay alma icin modal window -->
+        <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                                <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLongTitle">Proje Arkadaşı Silme Onayı</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                        </button>
+                                </div>
+                                <div id="modal_body" class="modal-body">
+                                        Proje arkadaşını silmek istediğinize emin misiniz?
+                                </div>
+                                <div class="modal-footer">
+                                        <button id="cancel_onay_button" type="button" class="btn btn-primary" data-dismiss="modal">Evet</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+                                </div>
+                        </div>
+                </div>
+        </div>
+
+
+
+</div>
+
+
+
+
+{% endblock %}

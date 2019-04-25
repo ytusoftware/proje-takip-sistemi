@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, request, render_template, send_from_directory, session
+from flask import Flask, redirect, url_for, request, render_template, send_from_directory, session, send_file
 from werkzeug.utils import secure_filename
 #Dosya islemleri icin
 import os
@@ -10,6 +10,7 @@ from user_authentication import *
 from werkzeug.security import generate_password_hash, check_password_hash
 from add_user_to_database import *
 import json
+from io import BytesIO
 
 
 
@@ -54,6 +55,8 @@ def greeting():
 
 
 
+
+
 #KULLANICI LOGIN HANDLE
 @app.route('/login', methods = ["GET","POST"])
 def login_handle():
@@ -90,6 +93,8 @@ def login_handle():
 
 
 
+
+
 #LOGOUT HANDLE
 @app.route('/logout')
 def logout_handle():
@@ -107,10 +112,10 @@ def show_profile():
         user = session["user"]
         template_values={
             "user_type":session["user_type"]
-        }    
+        }
         kisiselBilgiler={
             "Ad" : user.name,"Soyad":user.sname
-        }   
+        }
         return render_template("profil.html",infoAboutUser=kisiselBilgiler,template_values=(template_values))
 
     #Giris yapilmadiysa giris sayfasina yonlendirilir.
@@ -127,12 +132,12 @@ def ShowMyStudents():
                 user1 = session["user"]
                 template_values={
                     "user_type":session["user_type"]
-                }    
+                }
                 akademisyenAdi = user1.username
                 academician = Academician.find_by_username(akademisyenAdi)
-                
+
                 connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
-                
+
                 cursor = connection.cursor()
                 cursor.execute(
                 'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type FROM Student,Project,Academician WHERE Academician.username=%s AND \
@@ -156,14 +161,14 @@ def ShowMyStudents():
                     "students":data,
                     "disable_next_page":disable_next_page,
                     "init_page_num":pageno
-                }            
+                }
                 return render_template("gradePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
         return redirect(url_for("login_handle"))
 #Girilen Notu Sisteme Ekleyelim
 @app.route('/Grades/NotuSistemeEkle',methods=["GET","POST"])
 def notuKaydet():
-    if request.method == 'GET': 
+    if request.method == 'GET':
         if session.get("logged_in"):
             if session["user_type"] == "student":
                 return redirect(url_for("greeting"))
@@ -175,7 +180,7 @@ def notuKaydet():
                 academician = Academician.find_by_username(akademisyenAdi)
 
                 academician.set_grade(student_no,grade1)
-                
+
                 return redirect(url_for("ShowMyStudents"))
 
 
@@ -193,12 +198,12 @@ def ShowMyStudentsGrade():
                 user1 = session["user"]
                 template_values={
                     "user_type":session["user_type"]
-                }    
+                }
                 akademisyenAdi = user1.username
                 academician = Academician.find_by_username(akademisyenAdi)
-                
+
                 connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
-                
+
                 cursor = connection.cursor()
                 cursor.execute(
                 'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type,Student.grade FROM Student,Project,Academician WHERE Academician.username=%s AND \
@@ -222,7 +227,7 @@ def ShowMyStudentsGrade():
                     "students":data,
                     "disable_next_page":disable_next_page,
                     "init_page_num":pageno
-                }            
+                }
                 return render_template("gradePage2.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
         return redirect(url_for("login_handle"))
@@ -237,13 +242,13 @@ def showMyGrade():
             std = Student.find_by_student_no(user.student_no)
             myGrade1 = std.get_grade()
             if(myGrade1==None):
-                myGrade1 = -1 
+                myGrade1 = -1
             template_values={
                 "user_type":session["user_type"]
-            }    
+            }
             kisiselBilgiler={
                 "Ad" : user.name,"Soyad":user.sname,"Notu":myGrade1
-            }   
+            }
             return render_template("myGradePage.html",infoAboutUser=kisiselBilgiler,template_values=(template_values))
         return redirect(url_for("greeting"))
     #Giris yapilmadiysa giris sayfasina yonlendirilir.
@@ -253,7 +258,7 @@ def showMyGrade():
 #Düzenlenen notu Sisteme Girelim
 @app.route('/Grades/GradeEdit',methods=["GET","POST"])
 def notuDüzelt():
-    if request.method == 'GET': 
+    if request.method == 'GET':
         if session.get("logged_in"):
             if session["user_type"] == "student":
                 return redirect(url_for("greeting"))
@@ -265,12 +270,14 @@ def notuDüzelt():
                 academician = Academician.find_by_username(akademisyenAdi)
 
                 academician.set_grade(student_no,grade1)
-                
+
                 return redirect(url_for("ShowMyStudentsGrade"))
 
 
         return redirect(url_for("login_handle"))
     return redirect(url_for("ShowMyStudentsGrade"))
+
+
 
 #ADMIN PANELI INDEX
 @app.route('/admin',methods=["GET","POST"])
@@ -364,6 +371,7 @@ def admin_index_handle():
 
 
 
+
 #ADMIN PANELI GIRIS
 @app.route('/admin/login',methods=["GET","POST"])
 def admin_login_handle():
@@ -372,6 +380,7 @@ def admin_login_handle():
 
         session["login_failure"] = False
 
+        #Admin girisi yapildi mi?
         if session.get("admin_logged_in"):
 
             template_values={
@@ -401,6 +410,8 @@ def admin_login_handle():
 
 
 
+
+
 #ADMIN PANELI CIKIS
 @app.route('/admin/logout',methods=["GET"])
 def admin_logout_handle():
@@ -413,7 +424,11 @@ def admin_logout_handle():
 
 
 
-#Proje Islemleri menusu/Akademisyen Proje Onerileri icin handler
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Akademisyen Proje Önerileri
+#Sorumlu kişi: Çetin Tekin
 @app.route('/project/academician_proposals',methods=["GET"])
 def project_academician_proposals_handler():
     if request.method == "GET":
@@ -421,7 +436,7 @@ def project_academician_proposals_handler():
         #Giris yapildi mi?
         if session.get("logged_in"):
 
-            #NOT: Bu kisimda SQL sorgusu yazilmistir. Cunku Genel Duyurularin listelenebilmesi icin Student veya Academician instance
+            #NOT: Bu kisimda SQL sorgusu yazilmistir. Cunku Genel Projelerin listelenebilmesi icin Student veya Academician instance
             #methodlari kullanilamaz, bunun icin generic bir method yazilmadi.
 
             connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
@@ -431,7 +446,7 @@ def project_academician_proposals_handler():
             query_offset = (page_offset-1)*10
 
             try:
-                cursor.execute('SELECT * FROM Project OFFSET %s LIMIT 11',(query_offset,))
+                cursor.execute('SELECT * FROM Project WHERE proposal_type=%s OFFSET %s LIMIT 11',("academician",query_offset))
 
                 #data listelerin listesi
                 data = cursor.fetchall()
@@ -442,6 +457,12 @@ def project_academician_proposals_handler():
 
                 if num_of_projects < 11:
                     disable_next_page = True
+                    #Son eleman silinir
+
+
+                else:
+                    data = data[:-1]
+
 
 
 
@@ -493,7 +514,12 @@ def project_academician_proposals_handler():
 
 
 
-#Akademisyene ozel, Proje Islemleri menusu/Proje Oner icin handler
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Proje Öner
+#Sorumlu kişi: Çetin Tekin
 @app.route('/project/propose_project',methods=["GET","POST"])
 def academician_propose_project_handler():
     if request.method == "GET":
@@ -505,19 +531,6 @@ def academician_propose_project_handler():
                 #Ogrenciler bu sayfaya girmeye calisirsa ana sayfaya atiliyor
                 if session["user_type"] == "student":
                     return redirect(url_for("greeting"))
-
-
-
-                #Mevcut sessiondan akademisyen nesnesi cekiliyor.
-                academician = session["user"]
-                project_name = request.form["project_name"]
-                project_type = request.form["tipsec"]
-
-
-                #Veri tabani kaydi
-                academician.propose_project(project_name, project_type)
-
-
 
 
                 #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
@@ -564,10 +577,6 @@ def academician_propose_project_handler():
 
         #Giris yapildi mi?
         if session.get("logged_in"):
-
-            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
-            cursor = connection.cursor()
-
 
             try:
 
@@ -622,8 +631,78 @@ def academician_propose_project_handler():
 
                 return render_template("propose_project.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
 
-            finally:
-                connection.close()
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Önerilen Projelerim
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/my_proposals',methods=["GET"])
+def academician_my_proposals_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+
+            #Ogrenciler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+
+
+
+            page_offset = int(request.args.get("page"))
+
+            #Mevcut sessiondan akademisyen nesnesi cekiliyor.
+            academician = session["user"]
+
+            projects = academician.get_projects(page_offset)
+            disable_next_page = False
+
+            #Proje önerisi varsa
+            if projects:
+
+                num_of_projects = len(projects)
+                if num_of_projects < 11:
+                    disable_next_page = True
+
+
+                else:
+                    #Son eleman silinir
+                    projects = projects[:-1]
+
+
+
+
+
+            #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
+            template_values_index = {
+                "user_type":session["user_type"]
+
+            }
+
+
+            #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+            template_values_curr = {
+                    "projects":projects,
+                    "disable_next_page":disable_next_page,
+                    "init_page_num":int(request.args.get("page"))
+
+            }
+
+            return render_template("my_proposals.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
 
 
 
@@ -633,37 +712,1068 @@ def academician_propose_project_handler():
 
 
 
-'''
-#DOSYA UPLOAD ICIN TASLAK KOD
-@app.route('/uploader',methods = ['POST', 'GET'])
-def upload_handle():
-    if request.method == 'POST':
-        f = request.files['filem']
-        filename = secure_filename(f.filename)
-        f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return redirect(url_for('uploads_page_display'))
-'''
 
 
-'''
-@app.route('/myuploads', methods = ['POST','GET'])
-def uploads_page_display():
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Önerilen Projelerim, proje silme işlemi için AJAX call aracılığı ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/delete_proposal',methods=["GET"])
+def academician_delete_proposal_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Ogrenciler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
 
 
-    #Getting list of all files in the uploads
-    all_files = [f for f in listdir(app.config['UPLOAD_FOLDER']) if isfile(join(app.config['UPLOAD_FOLDER'], f))]
+            project_id = request.args.get("project_id")
+            project_id = int(project_id)
 
-    return render_template("uploads_display.html",all_files=all_files)
-'''
+            academician  = session["user"]
 
-'''
-#DOSYA INDIRME ISLEMI ICIN
-@app.route('/download')
-def download_file():
-        file = request.args.get("filename")
-        return send_from_directory(app.config['UPLOAD_FOLDER'],file, as_attachment=True)
+            success = academician.delete_project(project_id)
 
-'''
+            success = {
+            "success":success
+            }
+
+            response = json.dumps(success)
+
+            return response
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Önerilen Projelerim, proje düzenleme işlemi için AJAX call aracılığı ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/edit_proposal',methods=["POST"])
+def academician_edit_proposal_handler():
+    if request.method == "POST":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Ogrenciler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+
+
+
+            project_id = request.json['project_id']
+            new_project_name = request.json['new_project_name']
+            new_project_type = request.json['new_project_type']
+
+            academician  = session["user"]
+
+            success = academician.set_project(project_id, new_project_name, new_project_type)
+
+            success = {
+                "success":success
+            }
+
+            response = json.dumps(success)
+
+            return response
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Form-2 Gönder
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/send_form2',methods=["GET","POST"])
+def student_send_form2_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+
+
+            user = session["user"]
+
+            project = user.get_project()
+
+            template_values_curr = {}
+
+
+            #PROJEYE BAGLI MI? KONTROLU
+            if project:
+                template_values_curr["project_exists"] = True
+
+
+            else:
+                template_values_curr["project_exists"] = False
+
+
+
+
+
+            template_values_index = {
+                "user_type":session["user_type"]
+            }
+
+
+
+
+            return render_template("send_form2.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+    #METHOD POST
+    else:
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+
+            user = session["user"]
+
+            #Projeye bagli degil ise sayfaya tekrar atiliyor
+            project = user.get_project()
+            if not project:
+                return redirect(url_for("greeting"))
+
+
+            #Proje onaylanmadıysa form-2 gonderemez
+            if not project.project_confirm:
+                return redirect(url_for("greeting"))
+
+
+
+            project_id = project.project_id
+
+
+
+            f = request.files['file_to_send']
+            form2_blob_data = f.read()
+
+
+            project_id = project.project_id
+
+
+            user.add_form2(form2_blob_data)
+
+
+            template_values_index = {
+                "user_type":session["user_type"]
+            }
+
+            template_values_curr = {
+                "project_exists":True,
+                "success":True
+            }
+
+
+            return render_template("send_form2.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Gönderilen Form-2
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/view_form2',methods=["GET"])
+def student_view_form2_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+
+
+            user = session["user"]
+
+            project = user.get_project()
+
+            template_values_curr = {}
+
+
+            #PROJEYE BAGLI MI? KONTROLU
+            if project:
+                template_values_curr["project_exists"] = True
+                template_values_curr["form2_exists"] = project.form2_exists
+
+
+
+            else:
+                template_values_curr["project_exists"] = False
+
+
+
+
+            template_values_index = {
+                "user_type":session["user_type"]
+            }
+
+
+
+
+            return render_template("send_form2.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Gönderilen Form-2'de butona tıklamayla yapılan AJAX call ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/download_report',methods=["GET"])
+def download_report_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            user = session["user"]
+            user_type = session["user_type"]
+            report_type = request.args.get("report_type")
+
+            if user_type == "student":
+                report = user.get_report(report_type)
+                return send_file(BytesIO(form2), attachment_filename="report_type"+".pdf", as_attachment=True)
+
+            else:
+                #Burasi kodlanacak
+                pass
+
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Proje Başvurusu Yap
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/apply_project',methods=["GET","POST"])
+def apply_project_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+
+            #POST METOTTAN GELEN PARAMETRELER
+            success = request.args.get("success")
+            capacity_full = request.args.get("capacity_full")
+
+            success = str(success)
+
+            #Akademisyen önerileri çekiliyor
+            projects = Project.get_academician_proposals()
+
+            #Akademisyen bilgileri çekiliyor
+            academicians = Academician.get_all_academicians()
+
+
+
+            template_values_curr = {
+                "projects":projects,
+                "academicians":academicians,
+                "success":success,
+                "capacity_full":capacity_full
+            }
+
+
+            template_values_index = {
+                "user_type":session["user_type"]
+            }
+
+
+
+
+            return render_template("apply_project.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+    #post method
+    else:
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+            proposal_type = request.form['proposal_type_select']
+            user = session["user"]
+
+
+            try:
+                #Proje akademisyen önerisinden başvuruldu
+                if proposal_type == "academician_proposal":
+
+                    project_id = request.form["project_choice"]
+                    project_id = int(project_id)
+
+                    capacity_full = Project.check_project_capacity(project_id)
+
+                    if capacity_full:
+                        return redirect("/project/apply_project?success=false&capacity_full=true")
+
+
+                    user.apply_academician_project(project_id)
+
+                elif proposal_type == "student_proposal":
+
+                    project_name = request.form["project_name"]
+                    project_type = request.form["project_type_choice"]
+                    academician_username = request.form["academician_choice"]
+                    user.apply_student_project(project_name, project_type, academician_username)
+
+
+                return redirect("/project/apply_project?success=true")
+
+
+
+            except Exception as e:
+                return redirect("/project/apply_project?success=false")
+                #return (str(e))
+
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Proje Başvurusu Durumu
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/project_apply_status',methods=["GET"])
+def project_apply_status_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+
+            user = session["user"]
+            project_info = user.get_applied_project()
+
+
+            template_values_curr = {
+                "project_info":project_info
+            }
+
+
+            template_values_index = {
+                "user_type":session["user_type"]
+            }
+
+
+
+
+            return render_template("project_apply_status.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Proje Başvurusu Durumu AJAX call ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/delete_project_apply',methods=["GET"])
+def project_apply_cancel_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+
+            user = session["user"]
+            user.delete_project_apply()
+
+            return "success"
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Öğrenci Proje Başvuruları (Akademisyen)
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/student_project_applications',methods=["GET"])
+def student_project_applications_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Öğrenciler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+
+
+            academician = session["user"]
+            page_offset = int(request.args.get("page"))
+            applied_projects = academician.get_all_applied_projects(page_offset)
+
+            disable_next_page = False
+
+            #Proje başvurusu varsa
+            if applied_projects:
+
+                num_of_projects = len(applied_projects)
+                if num_of_projects < 11:
+                    disable_next_page = True
+
+
+                else:
+                    #Son eleman silinir
+                    applied_projects = applied_projects[:-1]
+
+
+
+
+            template_values_curr = {
+                "applied_projects":applied_projects,
+                "disable_next_page":disable_next_page,
+                "init_page_num":int(request.args.get("page"))
+            }
+
+
+            template_values_index = {
+                "user_type":session["user_type"]
+            }
+
+
+
+
+            return render_template("student_project_applications.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Öğrenci Proje Başvuruları öğrencileri görüntülerken yapılan ajaxa call ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/get_project_application_students',methods=["GET"])
+def get_project_application_students_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Öğrenciler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+
+
+            project_id = request.args.get("project_id")
+            project_id = int(project_id)
+
+            academician = session["user"]
+            students = academician.get_project_application_students(project_id)
+
+            #Aynı grupta olan öğrenciler aynı liste içinde olacak şekilde listelerin listesi yapısı oluşturulur
+            len_students = len(students)
+            i=0
+            grouped_students = []
+            checked_student_dict = {}
+
+            for i in range(len_students):
+                k = i+1
+                if not checked_student_dict.get(students[i][0]):
+                    #Arkadaşı var ise
+                    if students[i][3]:
+
+                        for k in range(len_students):
+                            #Öğrenciler grup arkadaşı ise
+                            if (students[i][0] == students[k][3]):
+                                checked_student_dict[students[k][0]] = True
+                                grouped_students.append( [students[i], students[k]] )
+
+                    else:
+                        grouped_students.append([students[i]])
+
+
+            grouped_students = json.dumps(grouped_students)
+
+            return grouped_students
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Öğrenci Proje Başvuruları öğrencileri görüntülerken yapılan ajaxa call ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/reject_project_application',methods=["GET"])
+def reject_project_application_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Öğrenciler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+
+
+            student_no = request.args.get("student_no")
+
+            academician = session["user"]
+
+            success = academician.reject_student_project_application(student_no)
+
+            response = json.dumps(success)
+
+            return response
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Öğrenci Proje Başvuruları öğrencileri görüntülerken yapılan ajaxa call ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/confirm_project_application',methods=["GET"])
+def confirm_project_application_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Öğrenciler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+
+
+            student_no = request.args.get("student_no")
+            project_id = request.args.get("project_id")
+            project_id = int(project_id)
+
+            academician = session["user"]
+
+            success = academician.set_student_project(student_no, project_id)
+
+            response = json.dumps(success)
+
+            return response
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Proje Arkadaşı Ekle
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/send_friend_request',methods=["GET"])
+def send_friend_request_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+
+            user = session["user"]
+            friend_student_no = request.args.get("ogr_list")
+
+            student = session["user"]
+
+            response = None
+
+            students = student.get_all_students()
+
+            #Gonderenin arkadasi var mi?
+            friend_exist = student.check_friend()
+
+            if friend_exist:
+                response = "you_friend_exist"
+
+                template_values_curr = {
+                    "response":response,
+                    "students":students
+                }
+
+
+                template_values_index = {
+                        "user_type":session["user_type"]
+                }
+
+
+                return render_template("send_friend_request.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+            #Form gonderildi, arkadaşlık talebi yollandi
+            if friend_student_no:
+                answer = student.send_friend_request(friend_student_no)
+                if answer:
+                    response = answer
+                else:
+                    response = "success"
+
+
+            template_values_curr = {
+                "response":response,
+                "students":students
+            }
+
+
+            template_values_index = {
+                "user_type":session["user_type"]
+            }
+
+
+
+
+            return render_template("send_friend_request.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Gelen Arkadaş İstekleri
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/my_received_requests',methods=["GET"])
+def my_received_requests_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+
+
+            page_offset = int(request.args.get("page"))
+            student = session["user"]
+            sender_students = student.get_friend_request_senders(page_offset)
+
+
+
+            disable_next_page = False
+
+            #Ogrenci varsa
+            if sender_students:
+
+                num_of_students = len(sender_students)
+                if num_of_students < 11:
+                    disable_next_page = True
+
+
+                else:
+                    #Son eleman silinir
+                    sender_students = sender_students[:-1]
+
+
+
+
+            template_values_curr = {
+                "sender_students":sender_students,
+                "disable_next_page":disable_next_page,
+                "init_page_num":int(request.args.get("page"))
+            }
+
+
+            template_values_index = {
+                "user_type":session["user_type"]
+            }
+
+
+
+            return render_template("my_received_requests.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Gelen Arkadaşlık İstekleri reddetme islemi ajax call
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/reject_friend_request',methods=["GET"])
+def reject_friend_request_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+            student = session["user"]
+
+            student_no=request.args.get("student_no")
+
+            success = student.reject_friend_request(student_no)
+            success = {"success":success}
+            response = json.dumps(success)
+
+            return response
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Gelen Arkadaşlık İstekleri onaylama islemi ajax call
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/confirm_friend_request',methods=["GET"])
+def confirm_friend_request_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+            student = session["user"]
+
+            student_no=request.args.get("student_no")
+
+            answer = student.confirm_friend_request(student_no)
+            response = {"answer":answer}
+            response = json.dumps(response)
+
+            return response
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Gönderilen Arkadaş İstekleri
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/my_sent_requests',methods=["GET"])
+def my_sent_requests_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+
+
+            page_offset = int(request.args.get("page"))
+            student = session["user"]
+            receiver_students = student.get_friend_request_receivers(page_offset)
+
+
+
+            disable_next_page = False
+
+            #Ogrenci varsa
+            if receiver_students:
+
+                num_of_students = len(receiver_students)
+                if num_of_students < 11:
+                    disable_next_page = True
+
+
+                else:
+                    #Son eleman silinir
+                    receiver_students = sender_students[:-1]
+
+
+
+
+            template_values_curr = {
+                "receiver_students":receiver_students,
+                "disable_next_page":disable_next_page,
+                "init_page_num":int(request.args.get("page"))
+            }
+
+
+            template_values_index = {
+                "user_type":session["user_type"]
+            }
+
+
+
+            return render_template("my_sent_requests.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Gönderilen Arkadaşlık İstekleri istek iptali islemi ajax call
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/cancel_friend_request',methods=["GET"])
+def cancel_friend_request_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+            student = session["user"]
+
+            student_no=request.args.get("student_no")
+
+            answer = student.cancel_friend_request(student_no)
+            response = {"answer":answer}
+            response = json.dumps(response)
+
+            return response
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Proje Arkadaşım
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/my_friend',methods=["GET"])
+def my_friend_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+            user = session["user"]
+            student_info = user.get_friend()
+
+            template_values_curr = {
+                "student_info":student_info
+            }
+
+            template_values_index = {
+                "user_type":session["user_type"]
+            }
+
+
+
+            return render_template("my_friend.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Gönderilen Arkadaşlık İstekleri istek iptali islemi ajax call
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/delete_friend',methods=["GET"])
+def delete_friend_request_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+            student = session["user"]
+
+
+            answer = student.delete_friend()
+            response = {"answer":answer}
+            response = json.dumps(response)
+
+            return response
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
 
 
 if __name__ == '__main__':

@@ -1,0 +1,53 @@
+{% extends "index.html" %}
+
+<!-- external js ve css dosyalari include etmek icin -->
+{% block includes %}
+<!--
+<link rel="stylesheet" href="/static/css/propose_project/propose_project.css">
+-->
+
+<script type="text/javascript" src="/static/js/send_form2/send_form2.js"></script>
+
+<!-- NOT: Bu js kodu burada yazilmak zorunda. External js dosyasina python degiskenlerini (jinja2 aracaligiyla gelen) aktarmak icin -->
+<script type="text/javascript">
+        var template_values_curr = JSON.parse('{{ template_values_curr|safe }}');
+        pass_func(template_values_curr);
+</script>
+
+{% endblock %}
+
+
+<!-- Ortadaki degisen alan icin HTML kodlar -->
+{% block content %}
+
+
+<div class="container-fluid">
+
+        <div class="row mb-4">
+                <div class="col">
+                        <h2>Form-2 Gönder/Düzenle</h2>
+                </div>
+
+        </div>
+
+
+        <form method="post" action="/project/send_form2" enctype="multipart/form-data">
+                <div class="form-group row ml-2">
+                        <label for="exampleFormControlFile1">Form-2 yükleyiniz.</label>
+                </div>
+
+                <div class="form-group row ml-2">
+                        <input type="file" class="form-control-file" id="file_id" name="file_to_send">
+                </div>
+
+                <div class="form-group row ml-2">
+                        <input class="btn btn-primary" type="submit" name="Gönder" value="Gönder">
+                </div>
+
+        </form>
+
+
+</div>
+
+
+{% endblock %}
