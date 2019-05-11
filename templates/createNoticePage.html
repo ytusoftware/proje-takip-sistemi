@@ -1,0 +1,41 @@
+{% extends "index.html" %}
+
+<!-- external js ve css dosyalari include etmek icin -->
+{% block includes %}
+    <script type="text/javascript" src="/static/js/notices/createNotice.js"></script>
+
+{% endblock %}
+
+
+<!-- Ortadaki degisen alan icin HTML kodlar -->
+{% block content %}
+
+<div class="container-fluid">
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white"><h5>Duyuru Yap</h5></div>
+        <div class="card-body">
+            <form action="/Notices/PublishNotice" class="needs-validation" method="POST" novalidate>
+              <div class="form-group row">
+                <label for="title" class="col-sm-2 col-form-label"><strong><h5>Duyuru Başlığı :</h5></strong></label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="title" placeholder="Başlığı Giriniz" name="title" required>
+                    <div class="valid-feedback">Geçerli.</div>
+                    <div class="invalid-feedback">Lütfen Bu Alanı Doldurunuz.</div>
+                </div>
+               
+              </div>
+              <div class="form-group">
+                <label for="contentNotice"><strong><h5>Duyuru Metni</h5></strong></label>
+                <textarea class="form-control" id="contentNotice" placeholder="Duyuru İçeriğini Giriniz" name="contentNotice" rows="5" required></textarea>
+                <div class="valid-feedback">Geçerli.</div>
+                <div class="invalid-feedback">Lütfen Bu Alani Doldurunuz.</div>
+              </div>
+    
+              <button type="submit" class="btn btn-primary float-right">Duyuru Oluştur</button>
+            </form>           
+        </div> 
+      </div>
+</div>
+
+{% endblock %}
+
