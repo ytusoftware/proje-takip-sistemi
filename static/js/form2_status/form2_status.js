@@ -18,17 +18,24 @@ function pass_func(template_values_curr) {
                                         break;
 
                                 case "council_rejected":
-                                        $("#aciklama_baslik").after('<div name="be_deleted" class="row">'+
-                                                        '<textarea class="col-5 ml-3" rows="5" id="comment" readonly>'+ template_values_curr["council_decision"] +'</textarea>'+
-                                                '</div>');
-                                                
+                                        $("#place_pointer").after('<div id="aciklama_baslik" class="row mt-2">'+
+                                                                        '<h4 class="col">Kurul Açıklaması</h4>'+
+                                                                  ' </div>'+
+                                                                  '<div name="be_deleted" class="row">'+
+                                                                        '<textarea class="col-5 ml-3" rows="5" id="comment" readonly>'+ template_values_curr["council_decision"] +'</textarea>'+
+                                                                  '</div>');
+
                                         $("#apply_status").append('<p class="p-3 rounded bg-danger text-white text-center">Kurul Tarafından Reddedildi</p>');
                                         break;
 
                                 case "council_confirmed":
-                                        $("#aciklama_baslik").after('<div name="be_deleted" class="row">'+
-                                                '<textarea class="col-5 ml-3" rows="5" id="comment" readonly>'+ template_values_curr["council_decision"] +'</textarea>'+
-                                        '</div>');
+                                        $("#place_pointer").after('<div id="aciklama_baslik" class="row mt-2">'+
+                                                                        '<h4 class="col">Kurul Açıklaması</h4>'+
+                                                                ' </div>'+
+                                                                '<div name="be_deleted" class="row">'+
+                                                                        '<textarea class="col-5 ml-3" rows="5" id="comment" readonly>'+ template_values_curr["council_decision"] +'</textarea>'+
+                                                                '</div>');
+
 
                                         $("#apply_status").append('<p class="p-3 rounded bg-success text-white text-center">Kurul Tarafından Onaylandı</p>');
                                         break;

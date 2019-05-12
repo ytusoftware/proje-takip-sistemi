@@ -174,7 +174,14 @@ def createNotice():
         else:
             user1 = session["user"]
             template_values={
-                "user_type":session["user_type"]
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
             }
             return render_template("createNoticePage.html",template_values=template_values)
     return redirect(url_for("login_handle"))
@@ -185,7 +192,14 @@ def saveNotice():
     if request.method=="POST":
         user1 = session["user"]
         template_values={
-            "user_type":session["user_type"]
+            "user_type":session["user_type"],
+            "PROCESS_1":PROCESS_1,
+            "PROCESS_2":PROCESS_2,
+            "PROCESS_3":PROCESS_3,
+            "PROCESS_4":PROCESS_4,
+            "PROCESS_5":PROCESS_5,
+            "PROCESS_6":PROCESS_6,
+            "PROCESS_7":PROCESS_7
         }
         akademisyenAdi = user1.username
 
@@ -208,7 +222,14 @@ def showMyNotices():
     if session.get("logged_in"):
         user1 = session["user"]
         template_values={
-            "user_type":session["user_type"]
+            "user_type":session["user_type"],
+            "PROCESS_1":PROCESS_1,
+            "PROCESS_2":PROCESS_2,
+            "PROCESS_3":PROCESS_3,
+            "PROCESS_4":PROCESS_4,
+            "PROCESS_5":PROCESS_5,
+            "PROCESS_6":PROCESS_6,
+            "PROCESS_7":PROCESS_7
         }
         if session["user_type"] == "student":
             Academician_userName = user1.get_academician()
