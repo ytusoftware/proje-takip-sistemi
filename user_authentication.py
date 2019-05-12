@@ -7,11 +7,12 @@ DATABASE_URL = os.environ['DATABASE_URL']
 
 
 class Project:
-    def __init__(self, project_id, project_name, project_type):
+    def __init__(self, project_id, project_name, project_type,form2_status,council_decision):
         self.project_id = project_id
         self.project_name = project_name
         self.project_type = project_type
-
+        self.form2_status = form2_status
+        self.council_decision = council_decision
 
 
 
@@ -83,10 +84,10 @@ class Student():
         cursor = connection.cursor()
 
         try:
-            cursor.execute('SELECT Student.project_id, project_name, project_type FROM Student,Project WHERE student_no=%s AND Student.project_id=Project.project_id', (self.student_no,))
+            cursor.execute('SELECT Student.project_id, project_name, project_type, form2_status,form2_council_decision FROM Student,Project WHERE student_no=%s AND Student.project_id=Project.project_id', (self.student_no,))
             data=cursor.fetchone()
             if data:
-                return Project(data[0], data[1], data[2])
+                return Project(data[0], data[1], data[2], data[3], data[4])
 
             else:
                 return None
@@ -216,11 +217,11 @@ class Student():
         cursor = connection.cursor()
 
         try:
-            form2_confirm = False
-            form2_exist = True
-            cursor.execute('UPDATE Student \
-            SET form2=%s, form2_confirm=%s, form2_exist=%s \
-            WHERE student_no=%s',(psycopg2.Binary(form2_blob_data), form2_confirm, form2_exist, self.student_no))
+            form2_status = "academician_pending"
+            cursor.execute('UPDATE Project \
+            SET form2=%s, form2_status=%s \
+            WHERE project_id IN(\
+            SELECT project_id FROM Student WHERE student_no=%s)',(psycopg2.Binary(form2_blob_data), form2_status, self.student_no))
 
             return True
 
@@ -228,6 +229,26 @@ class Student():
             curs.execute("insert into blobs (file) values (%s)",
             (psycopg2.Binary(mypic),))
             """
+
+        finally:
+            connection.commit()
+            connection.close()
+
+
+
+    def add_report(self, report_type, report_blob_data):
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+        cursor = connection.cursor()
+
+        exist_word = report_type + "_exist"
+
+        try:
+
+            cursor.execute(
+            sql.SQL("UPDATE Project SET {}=%s,{}=%s WHERE project_id IN(SELECT project_id FROM Student WHERE student_no=%s)").format(
+            *map(sql.Identifier, (report_type, exist_word))), (psycopg2.Binary(report_blob_data),"true",self.student_no))
+
+            return True
 
         finally:
             connection.commit()
@@ -243,7 +264,7 @@ class Student():
         try:
 
             cursor.execute(
-            sql.SQL("SELECT {} FROM Student WHERE student_no=%s").format(
+            sql.SQL("SELECT {} FROM Project,Student WHERE Student.project_id=Project.project_id AND student_no=%s").format(
             sql.Identifier(report_type)), (self.student_no,))
 
             data = cursor.fetchone()
@@ -253,6 +274,7 @@ class Student():
                 return data[0]
         finally:
             connection.close()
+
 
 
     #NOT: Randevu ekleme ve duzenleme gibi metotlar sonraki gelistirmelere birakilmistir.
@@ -473,7 +495,7 @@ class Student():
 
             data = cursor.fetchone()
             if not data:
-                return "kurnazlik"
+                return "confirmed_friend_exist"
 
 
             #Ekran yenilenmedi, bu sirada isteği atan kisi biri ile arkadas olmus olabilir
@@ -606,6 +628,36 @@ class Student():
             data = cursor.fetchone()
 
 
+            #Proje alinmissa ve projeye basvurulmussa
+            cursor.execute('SELECT project_id,apply_project_id,apply_project_status FROM Student \
+                            WHERE student_no=%s',(self.student_no,))
+
+            data_2 = cursor.fetchone()
+
+            ###Onaylanmis proje varsa; kisinin arkadasina, ayni isimli fakat ogrenci onerisinden onaylanmis bir proje ayni akademisyene bagli olarak verilir
+            if data_2[0]:
+
+                #Mevcut proje bilgileri cekiliyor
+                cursor.execute('SELECT * FROM Project \
+                            WHERE project_id=%s',(data_2[0],))
+
+                data_3 = cursor.fetchone()
+
+
+                #Ayni isimli ogrenci onerisinden proje aciliyor
+                cursor.execute('INSERT INTO Project(project_name,project_type,username,proposal_type,form2,form2_status,report1,report1_exist,report2,report2_exist,report3,report3_exist)\
+                 VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING project_id;',\
+                (data_3[1],data_3[2],data_3[3],"student",psycopg2.Binary(data_3[5]),data_3[6],psycopg2.Binary(data_3[7]),data_3[8],psycopg2.Binary(data_3[9]),data_3[10],psycopg2.Binary(data_3[11]),data_3[12]))
+
+                new_project_id = cursor.fetchone()[0]
+
+                #Yeni proje bilgisi arkadaslik istegini silen kisinin projesi olarak set ediliyor
+                cursor.execute('UPDATE Student \
+                SET project_id=%s,apply_project_id=%s,apply_project_status=%s WHERE student_no=%s',(new_project_id,new_project_id,data_2[2],self.student_no))
+
+
+
+
             cursor.execute('DELETE FROM friend_request \
             WHERE (receiver_student_no=%s AND sender_student_no=%s) OR (receiver_student_no=%s AND sender_student_no=%s)',(self.student_no, data[0], data[0], self.student_no))
 
@@ -614,10 +666,27 @@ class Student():
 
 
 
+
+
             connection.commit()
 
         finally:
             connection.close()
+
+
+    def get_report_situations(self):
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+        cursor = connection.cursor()
+
+        try:
+            cursor.execute('SELECT report1_exist,report2_exist,report3_exist FROM Project,Student WHERE student_no=%s AND Student.project_id=Project.project_id', (self.student_no,))
+            data=cursor.fetchone()
+
+            return data
+
+        finally:
+            connection.close()
+
 
 
     #Bu metot objenin uye alanlarini sinif icerisinde set edip, objeyi return etmektedir.
@@ -665,8 +734,7 @@ class Academician():
 
             data = cursor.fetchall()
 
-            if data:
-                return data
+            return data
         finally:
             connection.close()
 
@@ -721,7 +789,7 @@ class Academician():
             Student.project_id=Project.project_id', (self.username,))
 
             data = cursor.fetchall()
-                
+
             student_list = []
 
             if data:
@@ -861,7 +929,7 @@ class Academician():
 
 
 
-    #Akademisyenin başvurulan tüm projelerini döndürür. Öğrenci önerisinden de o"lanlar dahil.
+    #Akademisyenin başvurulan tüm projelerini döndürür. Öğrenci önerisinden de olanlar dahil.
     def get_all_applied_projects(self, page_offset):
         connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
@@ -920,6 +988,106 @@ class Academician():
             connection.close()
 
 
+
+    #Form-2 si onay bekleyen projeleri dondurur
+    def get_form2_pending_projects(self, page_offset):
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+        cursor = connection.cursor()
+
+
+        try:
+            query_offset = (page_offset-1)*10
+
+            cursor.execute('SELECT project_id,project_name,project_type \
+            FROM Academician,Project \
+            WHERE Academician.username=%s AND \
+            Project.username=Academician.username AND \
+            form2_status=%s \
+            OFFSET %s LIMIT 11', (self.username, "academician_pending", query_offset))
+
+            data = cursor.fetchall()
+
+            if data:
+                return data
+        finally:
+            connection.close()
+
+
+
+    #Ogrenci Form-2 si onaylanir
+    def confirm_form2(self, project_id):
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+        cursor = connection.cursor()
+
+        try:
+
+            cursor.execute('UPDATE Project \
+            SET form2_status=%s \
+            WHERE username=%s AND project_id=%s',("council_pending",self.username,project_id))
+
+            return True
+
+        finally:
+            connection.commit()
+            connection.close()
+
+
+
+
+    #Ogrenci Form-2 si reddedilir
+    def reject_form2(self, project_id):
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+        cursor = connection.cursor()
+
+        try:
+
+            cursor.execute('UPDATE Project \
+            SET form2_status=%s \
+            WHERE username=%s AND project_id=%s',("academician_rejected",self.username,project_id))
+
+            return True
+
+        finally:
+            connection.commit()
+            connection.close()
+
+
+    #Gets report with given report type
+    def get_report(self, report_type, project_id):
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+        cursor = connection.cursor()
+
+        try:
+
+            cursor.execute(
+            sql.SQL("SELECT {} FROM Project WHERE username=%s AND project_id=%s").format(
+            sql.Identifier(report_type)), (self.username, project_id))
+
+            data = cursor.fetchone()
+
+            if data:
+
+                return data[0]
+        finally:
+            connection.close()
+
+
+    #Akademisyene bagli projelerden en az bir raporu yuklenmis olanlari dondurur
+    def get_all_projects_with_report(self):
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+        cursor = connection.cursor()
+
+
+        try:
+            cursor.execute('SELECT project_id,project_name,project_type \
+            FROM Project \
+            WHERE username=%s AND (report1_exist=%s OR report2_exist=%s OR report3_exist=%s)', (self.username, "true","true","true" ))
+
+            data = cursor.fetchall()
+
+            return data
+        finally:
+            connection.close()
 
 
     #Bu metot objenin uye alanlarini sinif icerisinde set edip, objeyi return etmektedir.

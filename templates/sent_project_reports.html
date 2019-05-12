@@ -1,0 +1,84 @@
+{% extends "index.html" %}
+
+<!-- external js ve css dosyalari include etmek icin -->
+{% block includes %}
+<!--
+<link rel="stylesheet" href="/static/css/propose_project/propose_project.css">
+-->
+
+<script type="text/javascript" src="/static/js/sent_project_reports/sent_project_reports.js"></script>
+
+<!-- NOT: Bu js kodu burada yazilmak zorunda. External js dosyasina python degiskenlerini (jinja2 aracaligiyla gelen) aktarmak icin -->
+<script type="text/javascript">
+        var template_values_curr = JSON.parse('{{ template_values_curr|safe }}');
+        pass_func(template_values_curr);
+</script>
+
+
+<!-- Add icon library -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+{% endblock %}
+
+
+<!-- Ortadaki degisen alan icin HTML kodlar -->
+{% block content %}
+
+
+<div class="container-fluid">
+
+        <div id="title" class="mb-5 row">
+
+                <div class="col">
+                        <h2>Gönderilen Proje Raporları</h2>
+                </div>
+
+        </div>
+
+        <div class="row">
+                <div class="col">
+                        <strong><h4>1. Proje Raporu</h4></strong>
+                </div>
+
+        </div>
+
+        <div class="row mb-4">
+                <div id="report1" class="col">
+                        <button onclick="location.href='/project/download_report?report_type=report1'" type="button" class="col-1 btn btn-primary"><i class="fa fa-download"></i> İndir</button>
+                </div>
+        </div>
+
+
+
+        <div class="mt-5 row">
+                <div class="col">
+                        <strong><h4>2. Proje Raporu</h4></strong>
+                </div>
+
+        </div>
+
+        <div class="row mb-4">
+                <div id="report2" class="col">
+                        <button onclick="location.href='/project/download_report?report_type=report2'" type="button" class="col-1 btn btn-primary"><i class="fa fa-download"></i> İndir</button>
+                </div>
+        </div>
+
+
+        <div class="mt-5 row">
+                <div class="col">
+                        <strong><h4>Final Proje Raporu</h4></strong>
+                </div>
+
+        </div>
+
+        <div class="row">
+                <div id="report3" class="col">
+                        <button onclick="location.href='/project/download_report?report_type=report3'" type="button" class="col-1 btn btn-primary"><i class="fa fa-download"></i> İndir</button>
+                </div>
+        </div>
+
+
+</div>
+
+
+{% endblock %}

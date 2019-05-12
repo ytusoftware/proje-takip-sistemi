@@ -6,7 +6,13 @@
 <link rel="stylesheet" href="/static/css/propose_project/propose_project.css">
 -->
 
-<script type="text/javascript" src="/static/js/send_form2/send_form2.js"></script>
+
+<!-- Bootstrap-select plugin import -->
+<script src="/static/js/bootstrap-select.min.js"></script>
+<link rel="stylesheet" href="/static/css/bootstrap-select.min.css">
+
+
+<script type="text/javascript" src="/static/js/send_project_report/send_project_report.js"></script>
 
 <!-- NOT: Bu js kodu burada yazilmak zorunda. External js dosyasina python degiskenlerini (jinja2 aracaligiyla gelen) aktarmak icin -->
 <script type="text/javascript">
@@ -23,25 +29,43 @@
 
 <div class="container-fluid">
 
-        <div id="title" class="row mb-4">
+        <div id="title" class="row mb-5">
                 <div class="col">
-                        <h2>Form-2 Gönder</h2>
+                        <h2>Proje Raporu Gönder</h2>
                 </div>
 
         </div>
 
 
-        <form id="send_form" method="post" action="/project/send_form2" enctype="multipart/form-data">
-                <div class="form-group row ml-2">
-                        <label for="exampleFormControlFile1">Form-2 yükleyiniz.</label>
+        <form action="/project/send_project_report" method="post" id="project_form" enctype="multipart/form-data">
+                <div class="form-group row ml-1">
+                        <label class="col" for="proposal_type_select">1) Rapor Tipi Seçiniz</label>
+
                 </div>
 
-                <div class="form-group row ml-2">
+                <div id="report_type_select" class="form-group row ml-4">
+                        <select name="report_type_select" class="col-2 custom-select" id="proposal_type_select">
+                                <option selected value="no_choice">Seçiniz</option>
+                                <option value="report1">1. Proje Raporu</option>
+                                <option value="report2">2. Proje Raporu</option>
+                                <option value="report3">Final Proje Raporu</option>
+                        </select>
+                </div>
+
+
+                <div name="student_proposal_display" class="form-group row ml-1 mt-5">
+                        <label class="col">2) Proje Raporu Yükleyiniz</label>
+
+                </div>
+
+                <div class="form-group row ml-4">
                         <input type="file" class="form-control-file" id="file_id" name="file_to_send">
                 </div>
 
-                <div class="form-group row ml-2">
-                        <button type="button" class="mt-3 col-2 btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
+
+                <div class="form-group row">
+                        <!-- Button trigger modal -->
+                        <button type="button" class="mt-5 ml-4 col-2 btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
                                 Gönder
                         </button>
                 </div>
@@ -55,13 +79,13 @@
                 <div class="modal-dialog modal-dialog-centered" role="document">
                         <div class="modal-content">
                                 <div class="modal-header">
-                                        <h5 class="modal-title" id="exampleModalLongTitle">Form-2 Gönderme Onayı</h5>
+                                        <h5 class="modal-title" id="exampleModalLongTitle">Proje Raporu Gönderme Onayı</h5>
                                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                                 <span aria-hidden="true">&times;</span>
                                         </button>
                                 </div>
                                 <div class="modal-body">
-                                        Form-2'yi göndermek istediğinize emin misiniz?
+                                        Proje raporunu göndermek istediğinize emin misiniz?
                                 </div>
                                 <div class="modal-footer">
                                         <button id="kaydet_button" type="button" class="btn btn-primary" data-dismiss="modal">Evet</button>
@@ -70,7 +94,6 @@
                         </div>
                 </div>
         </div>
-
 
 
 </div>

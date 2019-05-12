@@ -28,10 +28,10 @@ function pass_func(template_values_curr) {
                 //İleri ve geri butonlari icin bulunulan sayfaya gore guncellemeler
                 var init_page_num = template_values_curr["init_page_num"]
 
-                updated_prev_page_url = "/project/my_proposals?page=" + (init_page_num - 1).toString();
+                updated_prev_page_url = "/project/form2_pending_projects?page=" + (init_page_num - 1).toString();
                 $("#pageprev").attr("href", updated_prev_page_url);
 
-                updated_next_page_url = "/project/my_proposals?page=" + (init_page_num + 1).toString();
+                updated_next_page_url = "/project/form2_pending_projects?page=" + (init_page_num + 1).toString();
                 $("#pagenext").attr("href", updated_next_page_url);
 
 
@@ -44,14 +44,6 @@ function pass_func(template_values_curr) {
                 //Sunucudan gelen proje listesi gosterilir (varsa)
                 if (project_list!=null && project_list[0]!=null) {
 
-                        var process_str = "";
-
-                        //Surec acik mi?
-                        if (template_values_curr["PROCESS_1"]) {
-                                process_str = '<button type="button" name="edit_button" class="btn btn-primary float-right">Düzenle</button>'+'<button type="button" name="delete_button" class="btn btn-danger float-right mr-3">Sil</button>';
-                        }
-
-
                         project_list.forEach(function(project, index) {
                                 $("#projects").append(
                                         '<li class="list-group-item">' +
@@ -63,8 +55,9 @@ function pass_func(template_values_curr) {
                                                         '</div>' +
 
                                                 '</div>' +
-                                                process_str+
-
+                                                '<button name="download_button" onclick="location.href=\'/project/download_report?report_type=form2&project_id='+ (project[0]).toString() +'\'" type="button" class="btn btn-primary float-right"><i class="fa fa-download"></i> İndir</button>' +
+                                                '<button type="button" name="confirm_button" class="btn btn-success float-right mr-3">Onayla</button>' +
+                                                '<button type="button" name="reject_button" class="btn btn-danger float-right mr-3">Reddet</button>' +
                                         '</li>'
                                 );
                         });
@@ -75,7 +68,7 @@ function pass_func(template_values_curr) {
                 else {
 
                         $("#title").after('<div class="ml-2 alert alert-warning" role="alert">'+
-                                                '<h4 class="alert-heading">Önerdiğiniz proje bulunmamaktadır!</h4>');
+                                                '<h4 class="alert-heading">Onay bekleyen Form-2 bulunmamaktadır!</h4>');
 
 
                         $("[name='be_deleted']").remove();
@@ -113,19 +106,19 @@ function pass_func(template_values_curr) {
 
 
 
-                /*PROJE SILME ISLEMI*/
+                /*FORM-2 REDDETME ISLEMI*/
 
                 var project_id; //Silinmek istenen projenin id'si bu degiskene cekilecek
                 var parent_element; //Silinecek liste elemani
 
-                $("[name='delete_button']").click(function(){
+                $("[name='reject_button']").click(function(){
                         //Tıklanan butondan ana liste elemanina ulasilir
                         parent_element = $(this).parent();
                         //Hidden input ile gizlenen proje id sine ulasilir
                         project_id = parent_element.find("input").prop("value");
 
                         //Onay icin modal penceresi acilir
-                        $('#silmeOnayiModal').modal('show');
+                        $('#reddetmeOnayiModal').modal('show');
 
                 });
 
@@ -134,12 +127,12 @@ function pass_func(template_values_curr) {
                 $("#modal_onay_buton").click(function(){
 
                         //Sunucu tarafına AJAX call yapilir ve islem basarisi cevabi alinir
-                        $.get("/project/delete_proposal?project_id="+project_id, function(data, status){
+                        $.get("/project/reject_form2?project_id="+project_id, function(data, status){
 
                                 var response = JSON.parse(data);
                                 if (response["success"]) {
                                         $("#search-box-parent").after('<div class="alert alert-success alert-dismissible fade show" role="alert">'+
-                                                                                 'Proje önerisi başarılı bir şekilde silindi!'+
+                                                                                 'Seçilen Form-2 başarılı bir şekilde reddedildi!'+
                                                                                         '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'+
                                                                                                 '<span aria-hidden="true">&times;</span>'+
                                                                                         '</button>'+
@@ -174,62 +167,63 @@ function pass_func(template_values_curr) {
 
 
 
-                /* PROJE ONERISI DUZENLEME ISLEMI*/
 
-                $("[name='edit_button']").click(function(){
+
+                /*FORM-2 ONAYLAMA ISLEMI*/
+
+                $("[name='confirm_button']").click(function(){
                         //Tıklanan butondan ana liste elemanina ulasilir
                         parent_element = $(this).parent();
                         //Hidden input ile gizlenen proje id sine ulasilir
                         project_id = parent_element.find("input").prop("value");
 
-                        //Duzenleme icin olan modal windowda gerekli ilklendirmeler yapilir
-                        $("#edit_project_name").prop("value",parent_element.find("label").text());
-
-                        //Duzenleme icin modal window acilir
-                        $('#duzenlemeModal').modal('show');
+                        //Onay icin modal penceresi acilir
+                        $('#onaylamaOnayiModal').modal('show');
 
                 });
 
 
+                //Modal penceresinden onay gelirse asil silme islemi yapilir
                 $("#modal_onay_buton_2").click(function(){
 
-                        //Guncellemis proje bilgileri cekiliyor
-                        new_project_name = $("#edit_project_name").prop("value");
-                        new_project_type = $("#select_id").prop("value");
+                        //Sunucu tarafına AJAX call yapilir ve islem basarisi cevabi alinir
+                        $.get("/project/confirm_form2?project_id="+project_id, function(data, status){
 
-
-                        //Guncellenen proje bilgileri sunucuya AJAX POST ile aktariliyor
-                        $.ajax({
-                                type : "POST",
-                                url : "/project/edit_proposal",
-                                contentType: "application/json;charset=UTF-8",
-                                dataType: "json",
-                                data : JSON.stringify({"project_id":project_id,
-                                        "new_project_name":new_project_name,
-                                        "new_project_type":new_project_type}),
-
-                                success: function(data, status, xhr){
+                                var response = JSON.parse(data);
+                                if (response["success"]) {
                                         $("#search-box-parent").after('<div class="alert alert-success alert-dismissible fade show" role="alert">'+
-                                                                                 'Değişiklikler başarılı bir şekilde kaydedildi!'+
+                                                                                 'Seçilen Form-2 başarılı bir şekilde onaylandı!'+
                                                                                         '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'+
                                                                                                 '<span aria-hidden="true">&times;</span>'+
                                                                                         '</button>'+
                                                                       '</div>'
                                                                 );
 
-
-                                        //Guncellenen degerler set kullanicin gordugu ekranda set ediliyor
-                                        parent_element.find("label").text(new_project_name);
-                                        parent_element.find("div div p").text(new_project_type);
-
+                                        //Kullanicinin gordugu listeden de projeyi iceren liste elemani silinir
+                                        parent_element.remove();
 
                                 }
+
+                                else {
+
+                                        $("#search-box-parent").after('<div class="alert alert-danger alert-dismissible fade show" role="alert">'+
+                                                                                 '<strong>Hata!</strong> Lütfen tekrar deneyiniz.' +
+                                                                                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'+
+                                                                                                '<span aria-hidden="true">&times;</span>'+
+                                                                                        '</button>'+
+                                                                      '</div>'
+                                                                );
+
+                                }
+
+
                         });
+
+
+
+
+
                 });
-
-
-
-
 
 
 

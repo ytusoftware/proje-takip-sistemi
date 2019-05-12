@@ -1,0 +1,80 @@
+{% extends "index.html" %}
+
+<!-- external js ve css dosyalari include etmek icin -->
+{% block includes %}
+<!--
+<link rel="stylesheet" href="/static/css/propose_project/propose_project.css">
+-->
+
+
+<!-- Bootstrap-select plugin import -->
+<script src="/static/js/bootstrap-select.min.js"></script>
+<link rel="stylesheet" href="/static/css/bootstrap-select.min.css">
+
+
+<script type="text/javascript" src="/static/js/get_student_report/get_student_report.js"></script>
+
+<!-- NOT: Bu js kodu burada yazilmak zorunda. External js dosyasina python degiskenlerini (jinja2 aracaligiyla gelen) aktarmak icin -->
+<script type="text/javascript">
+        var template_values_curr = JSON.parse('{{ template_values_curr|safe }}');
+        pass_func(template_values_curr);
+</script>
+
+<!-- Add icon library -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+{% endblock %}
+
+
+<!-- Ortadaki degisen alan icin HTML kodlar -->
+{% block content %}
+
+
+<div class="container-fluid">
+
+        <div id="title" class="row mb-5">
+                <div class="col">
+                        <h2>Öğrenci Proje Raporu İndir</h2>
+                </div>
+
+        </div>
+
+
+        <form action="/project/download_report" method="get" id="student_report">
+
+                <div class="form-group row ml-3">
+                        <p>1) Proje Seçiniz.</p>
+                </div>
+
+                <div class="form-group row ml-3">
+                        <select id="project_list" name="project_id" data-live-search="true" class="col-6 selectpicker">
+                                <option selected value="no_choice">Seçiniz</option>
+                        </select>
+                </div>
+
+                <div class="form-group row ml-3">
+                        <p>2) Rapor tipi seçiniz.</p>
+                </div>
+
+                <div class="form-group row ml-4">
+                        <select name="report_type" class="col-2 custom-select" id="report_type_select">
+                                <option selected value="no_choice">Seçiniz</option>
+                                <option value="report1">1. Proje Raporu</option>
+                                <option value="report2">2. Proje Raporu</option>
+                                <option value="report3">Final Proje Raporu</option>
+                        </select>
+                </div>
+
+
+                <div class="ml-4 form-group row">
+                        <button id="download_button" type="button" class="col-1 btn btn-primary"><i class="fa fa-download"></i> İndir</button>
+                </div>
+
+
+        </form>
+
+
+</div>
+
+
+{% endblock %}

@@ -11,6 +11,36 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from add_user_to_database import *
 import json
 from io import BytesIO
+import zipfile
+import time
+
+
+#SYSTEM FLOW CONTROL
+####################
+
+#Akademisyen proje oneri gonderme/silme/duzenleme
+#Ogrenci arkadas ekleme sureci
+PROCESS_1 = True
+
+#Ogrenci proje basvuru yapma sureci
+PROCESS_2 = True
+
+#Akademisyen proje basvuru degerlendirme sureci
+PROCESS_3 = True
+
+#Form-2 gonderme sureci
+PROCESS_4 = True
+
+#Form-2 akademisyen onayi sureci
+PROCESS_5 = True
+
+#Form-2 kurul onayi sureci
+PROCESS_6 = True
+
+#MILESTONE!!! --> Form-2 si onaylanmayan ogrencileri sistem tarafindan inactive yapilir
+
+#Rapor gonderme sureci
+PROCESS_7 = True
 
 
 
@@ -45,7 +75,14 @@ def greeting():
         template_values = {
         "name":user.name,
         "sname":user.sname,
-        "user_type":user_type
+        "user_type":user_type,
+        "PROCESS_1":PROCESS_1,
+        "PROCESS_2":PROCESS_2,
+        "PROCESS_3":PROCESS_3,
+        "PROCESS_4":PROCESS_4,
+        "PROCESS_5":PROCESS_5,
+        "PROCESS_6":PROCESS_6,
+        "PROCESS_7":PROCESS_7
         }
 
         return render_template("index.html", template_values=template_values )
@@ -111,7 +148,14 @@ def show_profile():
     if session.get("logged_in"):
         user = session["user"]
         template_values={
-            "user_type":session["user_type"]
+            "user_type":session["user_type"],
+            "PROCESS_1":PROCESS_1,
+            "PROCESS_2":PROCESS_2,
+            "PROCESS_3":PROCESS_3,
+            "PROCESS_4":PROCESS_4,
+            "PROCESS_5":PROCESS_5,
+            "PROCESS_6":PROCESS_6,
+            "PROCESS_7":PROCESS_7
         }
         kisiselBilgiler={
             "Ad" : user.name,"Soyad":user.sname
@@ -131,7 +175,14 @@ def ShowMyStudents():
             else:
                 user1 = session["user"]
                 template_values={
-                    "user_type":session["user_type"]
+                    "user_type":session["user_type"],
+                    "PROCESS_1":PROCESS_1,
+                    "PROCESS_2":PROCESS_2,
+                    "PROCESS_3":PROCESS_3,
+                    "PROCESS_4":PROCESS_4,
+                    "PROCESS_5":PROCESS_5,
+                    "PROCESS_6":PROCESS_6,
+                    "PROCESS_7":PROCESS_7
                 }
                 akademisyenAdi = user1.username
                 academician = Academician.find_by_username(akademisyenAdi)
@@ -197,7 +248,14 @@ def ShowMyStudentsGrade():
             else:
                 user1 = session["user"]
                 template_values={
-                    "user_type":session["user_type"]
+                    "user_type":session["user_type"],
+                    "PROCESS_1":PROCESS_1,
+                    "PROCESS_2":PROCESS_2,
+                    "PROCESS_3":PROCESS_3,
+                    "PROCESS_4":PROCESS_4,
+                    "PROCESS_5":PROCESS_5,
+                    "PROCESS_6":PROCESS_6,
+                    "PROCESS_7":PROCESS_7
                 }
                 akademisyenAdi = user1.username
                 academician = Academician.find_by_username(akademisyenAdi)
@@ -244,7 +302,14 @@ def showMyGrade():
             if(myGrade1==None):
                 myGrade1 = -1
             template_values={
-                "user_type":session["user_type"]
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
             }
             kisiselBilgiler={
                 "Ad" : user.name,"Soyad":user.sname,"Notu":myGrade1
@@ -446,7 +511,7 @@ def project_academician_proposals_handler():
             query_offset = (page_offset-1)*10
 
             try:
-                cursor.execute('SELECT * FROM Project WHERE proposal_type=%s OFFSET %s LIMIT 11',("academician",query_offset))
+                cursor.execute('SELECT project_id,project_name,project_type,username,proposal_type FROM Project WHERE proposal_type=%s OFFSET %s LIMIT 11',("academician",query_offset))
 
                 #data listelerin listesi
                 data = cursor.fetchall()
@@ -468,7 +533,14 @@ def project_academician_proposals_handler():
 
                 #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
                 template_values_index = {
-                    "user_type":session["user_type"]
+                    "user_type":session["user_type"],
+                    "PROCESS_1":PROCESS_1,
+                    "PROCESS_2":PROCESS_2,
+                    "PROCESS_3":PROCESS_3,
+                    "PROCESS_4":PROCESS_4,
+                    "PROCESS_5":PROCESS_5,
+                    "PROCESS_6":PROCESS_6,
+                    "PROCESS_7":PROCESS_7
 
                 }
 
@@ -489,7 +561,14 @@ def project_academician_proposals_handler():
 
                 #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
                 template_values_index = {
-                    "user_type":session["user_type"]
+                    "user_type":session["user_type"],
+                    "PROCESS_1":PROCESS_1,
+                    "PROCESS_2":PROCESS_2,
+                    "PROCESS_3":PROCESS_3,
+                    "PROCESS_4":PROCESS_4,
+                    "PROCESS_5":PROCESS_5,
+                    "PROCESS_6":PROCESS_6,
+                    "PROCESS_7":PROCESS_7
 
                 }
 
@@ -524,6 +603,11 @@ def project_academician_proposals_handler():
 def academician_propose_project_handler():
     if request.method == "GET":
 
+        #Surec acik degil ise
+        if not PROCESS_1:
+            return redirect(url_for("greeting"))
+
+
         #Giris yapildi mi?
         if session.get("logged_in"):
             try:
@@ -535,7 +619,14 @@ def academician_propose_project_handler():
 
                 #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
                 template_values_index = {
-                    "user_type":session["user_type"]
+                    "user_type":session["user_type"],
+                    "PROCESS_1":PROCESS_1,
+                    "PROCESS_2":PROCESS_2,
+                    "PROCESS_3":PROCESS_3,
+                    "PROCESS_4":PROCESS_4,
+                    "PROCESS_5":PROCESS_5,
+                    "PROCESS_6":PROCESS_6,
+                    "PROCESS_7":PROCESS_7
 
                 }
 
@@ -553,7 +644,14 @@ def academician_propose_project_handler():
 
                 #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
                 template_values_index = {
-                    "user_type":session["user_type"]
+                    "user_type":session["user_type"],
+                    "PROCESS_1":PROCESS_1,
+                    "PROCESS_2":PROCESS_2,
+                    "PROCESS_3":PROCESS_3,
+                    "PROCESS_4":PROCESS_4,
+                    "PROCESS_5":PROCESS_5,
+                    "PROCESS_6":PROCESS_6,
+                    "PROCESS_7":PROCESS_7
 
                 }
 
@@ -574,6 +672,11 @@ def academician_propose_project_handler():
 
 
     if request.method == "POST":
+
+        #Surec acik degil ise
+        if not PROCESS_1:
+            return redirect(url_for("greeting"))
+
 
         #Giris yapildi mi?
         if session.get("logged_in"):
@@ -600,7 +703,14 @@ def academician_propose_project_handler():
 
                 #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
                 template_values_index = {
-                    "user_type":session["user_type"]
+                    "user_type":session["user_type"],
+                    "PROCESS_1":PROCESS_1,
+                    "PROCESS_2":PROCESS_2,
+                    "PROCESS_3":PROCESS_3,
+                    "PROCESS_4":PROCESS_4,
+                    "PROCESS_5":PROCESS_5,
+                    "PROCESS_6":PROCESS_6,
+                    "PROCESS_7":PROCESS_7
 
                 }
 
@@ -618,7 +728,14 @@ def academician_propose_project_handler():
 
                 #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
                 template_values_index = {
-                    "user_type":session["user_type"]
+                    "user_type":session["user_type"],
+                    "PROCESS_1":PROCESS_1,
+                    "PROCESS_2":PROCESS_2,
+                    "PROCESS_3":PROCESS_3,
+                    "PROCESS_4":PROCESS_4,
+                    "PROCESS_5":PROCESS_5,
+                    "PROCESS_6":PROCESS_6,
+                    "PROCESS_7":PROCESS_7
 
                 }
 
@@ -687,7 +804,14 @@ def academician_my_proposals_handler():
 
             #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
             template_values_index = {
-                "user_type":session["user_type"]
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
 
             }
 
@@ -696,7 +820,8 @@ def academician_my_proposals_handler():
             template_values_curr = {
                     "projects":projects,
                     "disable_next_page":disable_next_page,
-                    "init_page_num":int(request.args.get("page"))
+                    "init_page_num":int(request.args.get("page")),
+                    "PROCESS_1":PROCESS_1
 
             }
 
@@ -722,6 +847,11 @@ def academician_my_proposals_handler():
 @app.route('/project/delete_proposal',methods=["GET"])
 def academician_delete_proposal_handler():
     if request.method == "GET":
+
+        #Surec acik degil ise
+        if not PROCESS_1:
+            return redirect(url_for("greeting"))
+
 
         #Giris yapildi mi?
         if session.get("logged_in"):
@@ -762,6 +892,10 @@ def academician_delete_proposal_handler():
 @app.route('/project/edit_proposal',methods=["POST"])
 def academician_edit_proposal_handler():
     if request.method == "POST":
+
+        #Surec acik degil ise
+        if not PROCESS_1:
+            return redirect(url_for("greeting"))
 
 
         #Giris yapildi mi?
@@ -807,6 +941,10 @@ def academician_edit_proposal_handler():
 def student_send_form2_handler():
     if request.method == "GET":
 
+        #Surec acik mi?
+        if not PROCESS_4:
+            return redirect(url_for("greeting"))
+
 
         #Giris yapildi mi?
         if session.get("logged_in"):
@@ -838,7 +976,14 @@ def student_send_form2_handler():
 
 
             template_values_index = {
-                "user_type":session["user_type"]
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
             }
 
 
@@ -854,6 +999,10 @@ def student_send_form2_handler():
 
     #METHOD POST
     else:
+
+        #Surec acik mi?
+        if not PROCESS_4:
+            return redirect(url_for("greeting"))
 
 
         #Giris yapildi mi?
@@ -873,28 +1022,25 @@ def student_send_form2_handler():
                 return redirect(url_for("greeting"))
 
 
-            #Proje onaylanmadıysa form-2 gonderemez
-            if not project.project_confirm:
-                return redirect(url_for("greeting"))
-
-
-
             project_id = project.project_id
-
 
 
             f = request.files['file_to_send']
             form2_blob_data = f.read()
 
 
-            project_id = project.project_id
-
-
-            user.add_form2(form2_blob_data)
+            response = user.add_form2(form2_blob_data)
 
 
             template_values_index = {
-                "user_type":session["user_type"]
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
             }
 
             template_values_curr = {
@@ -953,7 +1099,14 @@ def student_view_form2_handler():
 
 
             template_values_index = {
-                "user_type":session["user_type"]
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
             }
 
 
@@ -984,15 +1137,18 @@ def download_report_handler():
             user = session["user"]
             user_type = session["user_type"]
             report_type = request.args.get("report_type")
+            project_id = request.args.get("project_id")
 
             if user_type == "student":
                 report = user.get_report(report_type)
-                return send_file(BytesIO(form2), attachment_filename="report_type"+".pdf", as_attachment=True)
+
 
             else:
-                #Burasi kodlanacak
-                pass
+                report = user.get_report(report_type, project_id)
 
+
+
+            return send_file(BytesIO(report), attachment_filename=report_type+".pdf", as_attachment=True)
 
 
 
@@ -1010,6 +1166,10 @@ def download_report_handler():
 @app.route('/project/apply_project',methods=["GET","POST"])
 def apply_project_handler():
     if request.method == "GET":
+
+        #Surec acik mi?
+        if not PROCESS_2:
+            return redirect(url_for("greeting"))
 
 
         #Giris yapildi mi?
@@ -1044,7 +1204,14 @@ def apply_project_handler():
 
 
             template_values_index = {
-                "user_type":session["user_type"]
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
             }
 
 
@@ -1060,6 +1227,10 @@ def apply_project_handler():
 
     #post method
     else:
+
+        #Surec acik mi?
+        if not PROCESS_2:
+            return redirect(url_for("greeting"))
 
 
         #Giris yapildi mi?
@@ -1144,7 +1315,14 @@ def project_apply_status_handler():
 
 
             template_values_index = {
-                "user_type":session["user_type"]
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
             }
 
 
@@ -1203,6 +1381,10 @@ def project_apply_cancel_handler():
 def student_project_applications_handler():
     if request.method == "GET":
 
+        #Surec acik mi?
+        if not PROCESS_3:
+            return redirect(url_for("greeting"))
+
 
         #Giris yapildi mi?
         if session.get("logged_in"):
@@ -1241,7 +1423,14 @@ def student_project_applications_handler():
 
 
             template_values_index = {
-                "user_type":session["user_type"]
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
             }
 
 
@@ -1324,6 +1513,10 @@ def get_project_application_students_handler():
 def reject_project_application_handler():
     if request.method == "GET":
 
+        #Surec acik mi?
+        if not PROCESS_3:
+            return redirect(url_for("greeting"))
+
 
         #Giris yapildi mi?
         if session.get("logged_in"):
@@ -1359,6 +1552,10 @@ def reject_project_application_handler():
 @app.route('/project/confirm_project_application',methods=["GET"])
 def confirm_project_application_handler():
     if request.method == "GET":
+
+        #Surec acik mi?
+        if not PROCESS_3:
+            return redirect(url_for("greeting"))
 
 
         #Giris yapildi mi?
@@ -1399,6 +1596,10 @@ def confirm_project_application_handler():
 def send_friend_request_handler():
     if request.method == "GET":
 
+        #Surec acik degil ise
+        if not PROCESS_1:
+            return redirect(url_for("greeting"))
+
 
         #Giris yapildi mi?
         if session.get("logged_in"):
@@ -1431,7 +1632,14 @@ def send_friend_request_handler():
 
 
                 template_values_index = {
-                        "user_type":session["user_type"]
+                        "user_type":session["user_type"],
+                        "PROCESS_1":PROCESS_1,
+                        "PROCESS_2":PROCESS_2,
+                        "PROCESS_3":PROCESS_3,
+                        "PROCESS_4":PROCESS_4,
+                        "PROCESS_5":PROCESS_5,
+                        "PROCESS_6":PROCESS_6,
+                        "PROCESS_7":PROCESS_7
                 }
 
 
@@ -1454,7 +1662,14 @@ def send_friend_request_handler():
 
 
             template_values_index = {
-                "user_type":session["user_type"]
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
             }
 
 
@@ -1520,7 +1735,14 @@ def my_received_requests_handler():
 
 
             template_values_index = {
-                "user_type":session["user_type"]
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
             }
 
 
@@ -1655,7 +1877,14 @@ def my_sent_requests_handler():
 
 
             template_values_index = {
-                "user_type":session["user_type"]
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
             }
 
 
@@ -1730,7 +1959,14 @@ def my_friend_handler():
             }
 
             template_values_index = {
-                "user_type":session["user_type"]
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
             }
 
 
@@ -1769,6 +2005,623 @@ def delete_friend_request_handler():
             response = json.dumps(response)
 
             return response
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Form-2 Onay Durumu
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/form2_status',methods=["GET"])
+def form2_status_handler():
+    if request.method == "GET":
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+
+            user = session["user"]
+            project = user.get_project()
+            status = None
+            council_decision = None
+
+            #Proje var ise
+            if project:
+                status = project.form2_status
+                council_decision = project.council_decision
+
+            template_values_curr = {
+                "status":status,
+                "council_decision":council_decision
+            }
+
+
+            template_values_index = {
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
+            }
+
+
+
+
+            return render_template("form2_status.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Onay Bekleyen Form-2
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/form2_pending_projects',methods=["GET"])
+def form2_pending_projects_handler():
+    if request.method == "GET":
+
+        #Surec acik mi?
+        if not PROCESS_5:
+            return redirect(url_for("greeting"))
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+
+            #Ogrenciler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+
+
+
+            page_offset = int(request.args.get("page"))
+
+            #Mevcut sessiondan akademisyen nesnesi cekiliyor.
+            academician = session["user"]
+
+            projects = academician.get_form2_pending_projects(page_offset)
+            disable_next_page = False
+
+            #Proje önerisi varsa
+            if projects:
+
+                num_of_projects = len(projects)
+                if num_of_projects < 11:
+                    disable_next_page = True
+
+
+                else:
+                    #Son eleman silinir
+                    projects = projects[:-1]
+
+
+
+
+
+            #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
+            template_values_index = {
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
+
+            }
+
+
+            #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+            template_values_curr = {
+                    "projects":projects,
+                    "disable_next_page":disable_next_page,
+                    "init_page_num":int(request.args.get("page"))
+
+            }
+
+            return render_template("form2_pending_projects.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Onay Bekleyen Form-2, proje silme işlemi için AJAX call aracılığı ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/reject_form2',methods=["GET"])
+def reject_form2_handler():
+    if request.method == "GET":
+
+        #Surec acik mi?
+        if not PROCESS_5:
+            return redirect(url_for("greeting"))
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Ogrenciler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+
+
+            project_id = request.args.get("project_id")
+            project_id = int(project_id)
+
+            academician  = session["user"]
+
+            success = academician.reject_form2(project_id)
+
+            success = {
+            "success":success
+            }
+
+            response = json.dumps(success)
+
+            return response
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Onay Bekleyen Form-2, proje silme işlemi için AJAX call aracılığı ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/confirm_form2',methods=["GET"])
+def confirm_form2_handler():
+    if request.method == "GET":
+
+        #Surec acik mi?
+        if not PROCESS_5:
+            return redirect(url_for("greeting"))
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Ogrenciler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+
+
+            project_id = request.args.get("project_id")
+            project_id = int(project_id)
+
+            academician  = session["user"]
+
+            success = academician.confirm_form2(project_id)
+
+            success = {
+            "success":success
+            }
+
+            response = json.dumps(success)
+
+            return response
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Proje Raporu Gönder
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/send_project_report',methods=["GET","POST"])
+def send_project_report_handler():
+    if request.method == "GET":
+
+        #Surec acik mi?
+        if not PROCESS_7:
+            return redirect(url_for("greeting"))
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+
+
+            template_values_curr = {
+            }
+
+
+            template_values_index = {
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
+            }
+
+
+
+
+            return render_template("send_project_report.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+    #post method
+    else:
+
+        #Surec acik mi?
+        if not PROCESS_7:
+            return redirect(url_for("greeting"))
+
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+            report_type = request.form['report_type_select']
+            user = session["user"]
+            f = request.files['file_to_send']
+            report_blob_data = f.read()
+
+            response = user.add_report(report_type, report_blob_data)
+
+            if response:
+                success = "true"
+
+            template_values_curr = {
+                "success":success
+            }
+
+
+
+            template_values_index = {
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
+            }
+
+
+
+            return render_template("send_project_report.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Onay Bekleyen Form-2
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/sent_project_reports',methods=["GET"])
+def sent_project_reports_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+
+
+
+            #Mevcut sessiondan akademisyen nesnesi cekiliyor.
+            student = session["user"]
+
+            project_report_situations = student.get_report_situations()
+
+
+
+            #NOT: Bu dictionay'de index html icin render edilmesi gereken degiskenler aktarilir, index.html'den kalitim aldigimiz icin
+            template_values_index = {
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
+
+            }
+
+
+            #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+            template_values_curr = {
+                    "project_report_situations":project_report_situations
+            }
+
+            return render_template("sent_project_reports.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
+
+
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Admin/Akademisyen Onaylı Form-2'leri İndir
+#Sorumlu kişi: Çetin Tekin
+@app.route('/admin/download_form2',methods=["GET"])
+def admin_download_form2_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("admin_logged_in"):
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+            data = None
+
+            try:
+                cursor.execute('SELECT project_id,project_name,form2 FROM Project WHERE form2_status=%s', ("council_pending",))
+                all_projects=cursor.fetchall()
+
+                #Akademisyen onayindan gecmis form-2ler zipleniyor
+                memory_file = BytesIO()
+                with zipfile.ZipFile(memory_file, 'w') as zf:
+                    for project in all_projects:
+                        data = zipfile.ZipInfo(str(project[0])+"_"+project[1]+".pdf")
+                        data.compress_type = zipfile.ZIP_DEFLATED
+                        zf.writestr(data, project[2])
+                memory_file.seek(0)
+                return send_file(memory_file, attachment_filename='allForm2.zip', as_attachment=True)
+
+            finally:
+                connection.close()
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("admin_login_handle"))
+
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Admin/Rapor İndir
+#Sorumlu kişi: Çetin Tekin
+@app.route('/admin/download_report',methods=["GET"])
+def admin_download_report_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("admin_logged_in"):
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+            report_type = request.args.get("report_type")
+
+            data = None
+
+            try:
+
+                exist_word = report_type+"_exist"
+
+                cursor.execute(
+                sql.SQL("SELECT project_id,project_name,{} FROM Project WHERE {}=%s").format(
+                *map(sql.Identifier, (report_type, exist_word))), ("true",))
+
+                all_projects=cursor.fetchall()
+
+                #Akademisyen onayindan gecmis form-2ler zipleniyor
+                memory_file = BytesIO()
+                with zipfile.ZipFile(memory_file, 'w') as zf:
+                    for project in all_projects:
+                        data = zipfile.ZipInfo(str(project[0])+"_"+project[1]+".pdf")
+                        data.compress_type = zipfile.ZIP_DEFLATED
+                        zf.writestr(data, project[2])
+                memory_file.seek(0)
+                return send_file(memory_file, attachment_filename=report_type+'.zip', as_attachment=True)
+
+            finally:
+                connection.close()
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("admin_login_handle"))
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Admin/Form-2 Kurul Onayı
+#Sorumlu kişi: Çetin Tekin
+@app.route('/admin/form2_council_decision',methods=["GET","POST"])
+def form2_council_decision_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("admin_logged_in"):
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+
+            try:
+
+                cursor.execute(
+                'SELECT student_no,name,sname FROM Student,Project WHERE Project.project_id=Student.project_id AND \
+                form2_status=%s', ("council_pending",))
+
+                data = cursor.fetchall()
+
+                template_values_curr = {
+                "students":data
+                }
+
+                return render_template("admin_form2_council_decision.html",template_values_curr=json.dumps(template_values_curr) )
+
+            finally:
+                connection.close()
+
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("admin_login_handle"))
+
+
+    #method post
+    else:
+
+        #Giris yapildi mi?
+        if session.get("admin_logged_in"):
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+            student_no = request.form['ogr_list']
+            council_decision = request.form['council_decision']
+            op_type = request.form['op_type']
+
+            try:
+
+                if op_type == "onay":
+
+                    cursor.execute(
+                    'UPDATE Project SET form2_status=%s,form2_council_decision=%s WHERE project_id IN(\
+                    SELECT project_id \
+                    FROM Student \
+                    WHERE student_no=%s)', ("council_confirmed",council_decision,student_no))
+
+
+                elif op_type == "red":
+
+                    cursor.execute(
+                    'UPDATE Project SET form2_status=%s,form2_council_decision=%s WHERE project_id IN(\
+                    SELECT project_id \
+                    FROM Student \
+                    WHERE student_no=%s)', ("council_rejected",council_decision,student_no))
+
+
+
+                cursor.execute(
+                'SELECT student_no,name,sname FROM Student,Project WHERE Project.project_id=Student.project_id AND \
+                form2_status=%s', ("council_pending",))
+
+                data = cursor.fetchall()
+
+
+                template_values_curr = {
+                "response":"success",
+                "students":data
+                }
+
+
+                return render_template("admin_form2_council_decision.html",template_values_curr=json.dumps(template_values_curr) )
+
+            finally:
+                connection.commit()
+                connection.close()
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("admin_login_handle"))
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Proje Başvurusu Yap
+#Sorumlu kişi: Çetin Tekin
+@app.route('/project/get_student_report',methods=["GET"])
+def get_student_report_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Ogrenciler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+
+
+
+            academician = session["user"]
+
+            #Raporu olan projeler cekiliyor
+            projects = academician.get_all_projects_with_report()
+
+            template_values_curr = {
+                "projects":projects,
+            }
+
+
+            template_values_index = {
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
+            }
+
+
+
+
+            return render_template("get_student_report.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
 
 
 

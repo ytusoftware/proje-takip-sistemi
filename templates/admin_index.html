@@ -7,12 +7,16 @@
         <title>Ana Sayfa</title>
         <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_login/admin_login.css') }}" /> -->
         <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/Index/myStyle1.css') }}" />
 
         <!-- jQuery library -->
         <script type="text/javascript" src="/static/js/jquery-3.3.1.js"></script>
 
+        <script src="/static/js/popper.min.js"></script>
+
         <!-- Latest compiled JavaScript -->
         <script src="/static/js/bootstrap.min.js"></script>
+        {% block includes %}
         <script type="text/javascript" src="/static/js/admin_index/admin_index.js"></script>
         <link rel="stylesheet" href="/static/css/admin_index/admin_index.css">
 
@@ -23,115 +27,165 @@
                 pass_func(template_values);
         </script>
 
+        <!-- Buradaki bloga cesitli sayfalar dinamik olarak includelarini ekleyecek -->
+
+        {% endblock %}
+
+
+
 </head>
 
 <body>
-        <div class="text-center">
-
-
-                <img width="130px" height="130px" src="/static/ytulogopng.png" alt="YtuLogo" />
-                <h1>Ara ve Bitirme Proje Takip Sistemi <br> <strong>Admin Paneli</strong></h1>
+        <div class="container-fluid">
+                <div class="row bg-1">
+                        <div class="col-sm-4 textCenter"><a href="/"><img src="/static/ytulogopng.png" class="img-circle img-responsive" width="200px;" height="200px;"></a></div>
+                        <div class="col-sm-8"><br /><br />
+                                <h2>Yıldız Teknik Üniversitesi Bilgisayar Mühendisliği</h2>
+                                <h2>Proje Takip Sistemi - ADMİN PANELİ</h2>
+                        </div>
+                </div>
         </div>
 
+        <div class="wrapper">
+                <!-- Sidebar -->
+                <nav id="sidebar">
+                        <ul class="list-unstyled components">
+                                <p class="menuHeader">Menu</p>
+                                <hr />
+                                <li>
+                                        <a href="/admin">Kullanıcı Ekleme Sayfası</a>
+                                </li>
+                                <li>
+                                        <a href="/admin/download_form2">Akademisyen Onaylı Form-2'leri İndir </a>
+                                </li>
 
-        <div class="container">
+                                <li>
+                                        <a href="#RaporSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Raporları İndir</a>
+                                        <ul class="collapse list-unstyled" id="RaporSubmenu">
+                                                <li>
+                                                        <a href="/admin/download_report?report_type=report1">1. Raporları İndir</a>
+                                                </li>
+                                                <li>
+                                                        <a href="/admin/download_report?report_type=report2">2. Raporları İndir </a>
+                                                </li>
+                                                <li>
+                                                        <a href="/admin/download_report?report_type=report3">Final Raporlarını İndir </a>
+                                                </li>
 
-                <form id="form-to-be-sent" action="/admin" method="post">
+                                        </ul>
+                                </li>
 
-                        <div class="form-group row">
-                                <p id="girisbaslik" class="cl2 col-sm">Veri Tabanı Kullanıcı Ekleme Sayfası</p>
-                        </div>
+                                <li>
+                                        <a href="/admin/form2_council_decision">Form-2 Kurul Kararı</a>
+                                </li>
+
+                                <li>
+                                        <a href="/admin/logout">Çıkış</a>
+                                </li>
+
+                        </ul>
+                </nav>
+                {% block content %}
+                <!-- Page Content -->
+                <div id="content">
+
+                        <div class="container-fluid">
+
+                                <form id="form-to-be-sent" action="/admin" method="post">
+
+                                        <div class="form-group row">
+                                                <p id="girisbaslik" class="cl2 col-sm">Veri Tabanı Kullanıcı Ekleme Sayfası</p>
+                                        </div>
 
 
-                        <!-- Uyari mesajlari -->
+                                        <!-- Uyari mesajlari -->
 
-                        <div class="form-group row" id="success_message">
-                                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                        Kullanıcı başarılı bir şekilde sisteme kayıt edildi.
-                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                        </button>
-                                </div>
-                        </div>
-
-
-                        <div class="form-group row" id="danger_message">
-                                <div class="alert alert-danger" role="alert">
-                                        <strong>Hata! </strong><label id="danger_source"> Hata mesaji buraya gelecek</label>
-                                </div>
-                        </div>
-
-
-
-                        <!-- Form kismi -->
-
-                        <div class="form-group row">
-                                <label id="student_no_username1" for="username_student_no2" class="col-sm-2 col-form-label">Öğrenci Numarası</label>
-                                <div class="col-sm-10">
-                                        <input autocomplete="off" name="student_no_username" type="text" class="form-control" id="student_no_username2" placeholder="Öğrenci No">
-                                </div>
-                        </div>
-
-                        <fieldset class="form-group">
-                                <div class="row">
-                                        <legend class="col-form-label col-sm-2 pt-0">Kullanıcı Tipi</legend>
-                                        <div class="col-sm-10">
-                                                <div class="form-check">
-                                                        <input class="form-check-input" type="radio" name="tipsec" id="student" value="student" checked>
-                                                        <label class="form-check-label" for="student">
-                                                                Öğrenci
-                                                        </label>
-                                                </div>
-                                                <div class="form-check">
-                                                        <input class="form-check-input" type="radio" name="tipsec" id="academician" value="academician">
-                                                        <label class="form-check-label" for="academician">
-                                                                Akademisyen
-                                                        </label>
+                                        <div class="form-group row" id="success_message">
+                                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                                        Kullanıcı başarılı bir şekilde sisteme kayıt edildi.
+                                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                                <span aria-hidden="true">&times;</span>
+                                                        </button>
                                                 </div>
                                         </div>
-                                </div>
-                        </fieldset>
 
-                        <div class="form-group row">
-                                <label for="email" class="col-sm-2 col-form-label">Eposta</label>
-                                <div class="col-sm-10">
-                                        <input autocomplete="off" name="email" type="email" class="form-control" id="email" placeholder="Email">
-                                </div>
-                        </div>
-                        <div class="form-group row">
-                                <p class="text-danger col-sm">Not: Hesap şifresi eposta adresine gönderilecektir.</p>
-                        </div>
-                        <div class="form-group row">
-                                <label for="name" class="col-sm-2 col-form-label">İsim</label>
-                                <div class="col-sm-10">
-                                        <input autocomplete="off" name="name" type="text" class="form-control" id="name" placeholder="İsim">
-                                </div>
-                        </div>
-                        <div class="form-group row">
-                                <label for="name" class="col-sm-2 col-form-label">Soyisim</label>
-                                <div class="col-sm-10">
-                                        <input autocomplete="off" name="sname" type="text" class="form-control" id="sname" placeholder="Soyisim">
-                                </div>
-                        </div>
 
-                        <div class="form-group row">
-                                <div class="col-sm-1">
-                                        <input id="kaydet_button" type="submit" class="btn btn-primary" value="Kaydet">
-                                </div>
-                        </div>
-                </form>
-                <div class="form-group row">
-                        <div class="col-sm-1">
-                                <form action="/admin/logout" method="get">
-                                        <input class="btn btn-danger" type="submit" name="cikis" value="Çıkış Yap">
+                                        <div class="form-group row" id="danger_message">
+                                                <div class="alert alert-danger" role="alert">
+                                                        <strong>Hata! </strong><label id="danger_source"> Hata mesaji buraya gelecek</label>
+                                                </div>
+                                        </div>
 
+
+
+                                        <!-- Form kismi -->
+
+                                        <div class="form-group row">
+                                                <label id="student_no_username1" for="username_student_no2" class="col-sm-2 col-form-label">Öğrenci Numarası</label>
+                                                <div class="col-sm-10">
+                                                        <input autocomplete="off" name="student_no_username" type="text" class="form-control" id="student_no_username2" placeholder="Öğrenci No">
+                                                </div>
+                                        </div>
+
+                                        <fieldset class="form-group">
+                                                <div class="row">
+                                                        <legend class="col-form-label col-sm-2 pt-0">Kullanıcı Tipi</legend>
+                                                        <div class="col-sm-10">
+                                                                <div class="form-check">
+                                                                        <input class="form-check-input" type="radio" name="tipsec" id="student" value="student" checked>
+                                                                        <label class="form-check-label" for="student">
+                                                                                Öğrenci
+                                                                        </label>
+                                                                </div>
+                                                                <div class="form-check">
+                                                                        <input class="form-check-input" type="radio" name="tipsec" id="academician" value="academician">
+                                                                        <label class="form-check-label" for="academician">
+                                                                                Akademisyen
+                                                                        </label>
+                                                                </div>
+                                                        </div>
+                                                </div>
+                                        </fieldset>
+
+                                        <div class="form-group row">
+                                                <label for="email" class="col-sm-2 col-form-label">Eposta</label>
+                                                <div class="col-sm-10">
+                                                        <input autocomplete="off" name="email" type="email" class="form-control" id="email" placeholder="Email">
+                                                </div>
+                                        </div>
+                                        <div class="form-group row">
+                                                <p class="text-danger col-sm">Not: Hesap şifresi eposta adresine gönderilecektir.</p>
+                                        </div>
+                                        <div class="form-group row">
+                                                <label for="name" class="col-sm-2 col-form-label">İsim</label>
+                                                <div class="col-sm-10">
+                                                        <input autocomplete="off" name="name" type="text" class="form-control" id="name" placeholder="İsim">
+                                                </div>
+                                        </div>
+                                        <div class="form-group row">
+                                                <label for="name" class="col-sm-2 col-form-label">Soyisim</label>
+                                                <div class="col-sm-10">
+                                                        <input autocomplete="off" name="sname" type="text" class="form-control" id="sname" placeholder="Soyisim">
+                                                </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                                <div class="col-sm-1">
+                                                        <input id="kaydet_button" type="submit" class="btn btn-primary" value="Kaydet">
+                                                </div>
+                                        </div>
                                 </form>
+
+
                         </div>
+
 
                 </div>
-
-
+                {% endblock %}
         </div>
+
+
+
 
 
 
