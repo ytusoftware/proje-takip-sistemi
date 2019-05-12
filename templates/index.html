@@ -36,29 +36,24 @@
 					<li>
 						<a href="/">Ana Sayfa</a>
 					</li>
+					{% if template_values["user_type"] == "student" %}
+						<li>
+							<a href="/Notices/MyNotices?page=1">Duyurular</a>
+						</li>
+					{% else %}	
 					<li>
 						<a href="#DuyuruSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Duyurular</a>
 						<ul class="collapse list-unstyled" id="DuyuruSubmenu">
 							<li>
-								<a href="#">Genel Duyurular</a>
-							</li>
-							{% if template_values["user_type"] == "student" %}
-							<li>
-								<a href="#">Proje Danışmanı Duyuruları</a>
-							</li>
-							{% else %}
-							<li>
-								<a href="#">Duyuru Yap</a>
+								<a href="/Notices/CreateNotice">Duyuru Yap</a>
 							</li>
 
 							<li>
-								<a href="#">Duyurularım</a>
+								<a href="/Notices/MyNotices?page=1">Duyurularım</a>
 							</li>
-
-							{% endif %}
-
 						</ul>
 					</li>
+					{% endif %}
 					<li>
 						<a href="#ProjeSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Proje İşlemleri</a>
 						<ul class="collapse list-unstyled" id="ProjeSubmenu">
@@ -130,26 +125,7 @@
 							{% endif %}
 						</ul>
 					</li>
-					<li>
-						<a href="#RandevuSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Randevu İşlemleri</a>
-						<ul class="collapse list-unstyled" id="RandevuSubmenu">
-							{% if template_values["user_type"] == "student" %}
-							<li>
-								<a href="#">Randevu Talep Et</a>
-							</li>
-							<li>
-								<a href="#">Randevum</a>
-							</li>
-							{% else %}
-							<li>
-								<a href="#">Randevu Talepleri</a>
-							</li>
-							<li>
-								<a href="#">Randevularım</a>
-							</li>
-							{% endif %}
-						</ul>
-					</li>
+					
 					<li>
 						{% if template_values["user_type"] == "student" %}
 						<a href="/Grades/MyGrade">Proje Notu Görüntüle</a>

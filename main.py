@@ -11,6 +11,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from add_user_to_database import *
 import json
 from io import BytesIO
+import datetime
 import zipfile
 import time
 
@@ -41,7 +42,6 @@ PROCESS_6 = True
 
 #Rapor gonderme sureci
 PROCESS_7 = True
-
 
 
 app = Flask(__name__)
@@ -165,6 +165,108 @@ def show_profile():
     #Giris yapilmadiysa giris sayfasina yonlendirilir.
     return redirect(url_for("login_handle"))
 
+#Duyuru Olusturma Sayfasina Yonlendirme
+@app.route('/Notices/CreateNotice')
+def createNotice():
+    if session.get("logged_in"):
+        if session["user_type"] == "student":
+            return redirect(url_for("greeting"))
+        else:
+            user1 = session["user"]
+            template_values={
+                "user_type":session["user_type"]
+            }
+            return render_template("createNoticePage.html",template_values=template_values)
+    return redirect(url_for("login_handle"))
+
+#Duyuruyu veri tabanına kaydedelim
+@app.route('/Notices/PublishNotice',methods=["POST"])
+def saveNotice():
+    if request.method=="POST":
+        user1 = session["user"]
+        template_values={
+            "user_type":session["user_type"]
+        }
+        akademisyenAdi = user1.username
+
+        current_date_time = datetime.datetime.today()
+        noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
+        title = request.form["title"]
+        cont = request.form["contentNotice"]
+
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+
+        cursor = connection.cursor()
+        cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,akademisyenAdi))
+        connection.commit()
+        connection.close()
+    return redirect(url_for("createNotice"))
+
+#Akademisyenin kendi yayinladigi duyurulari gormesi
+@app.route('/Notices/MyNotices')
+def showMyNotices():
+    if session.get("logged_in"):
+        user1 = session["user"]
+        template_values={
+            "user_type":session["user_type"]
+        }
+        if session["user_type"] == "student":
+            Academician_userName = user1.get_academician()
+        else:
+            Academician_userName = user1.username
+
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+
+        cursor = connection.cursor()
+
+        cursor.execute(
+            'SELECT n.id,n.title,n.content,n.date from notice n where n.username=%s order by n.date desc',(Academician_userName,))
+
+        data = cursor.fetchall()
+        num_of_notices=len(data)
+        disable_next_page = False
+        if num_of_notices < 11:
+            disable_next_page = True
+        if((request.args.get("page"))==None):
+            pageno=1
+        else:
+            pageno=int(request.args.get("page"))
+        #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+        template_values_curr = {
+            "error":False,
+            "notices":data,
+            "disable_next_page":disable_next_page,
+            "init_page_num":pageno
+        }
+        return render_template("myNoticePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
+
+    return redirect(url_for("login_handle"))
+
+#Duyuru iceriginin guncellenmesi
+@app.route('/Notices/EditNotice',methods=["GET"])
+def updateNotice():
+    if request.method == 'GET':
+        if session.get("logged_in"):
+            if session["user_type"] == "student":
+                return redirect(url_for("greeting"))
+            else:
+                content = (request.args.get("msg"))
+                id = int(request.args.get("id"))
+
+                connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+
+                cursor = connection.cursor()
+                cursor.execute("UPDATE notice SET content=%s where id="+str(id),(content,))
+                connection.commit()
+                connection.close()
+
+                return redirect(url_for("showMyNotices"))
+
+
+        return redirect(url_for("login_handle"))
+    return redirect(url_for("showMyNotices"))
+
+
 #Akademisyenden proje alanlarin listesi
 @app.route('/Grades/NotGirisSayfasi',methods=["GET"])
 def ShowMyStudents():
@@ -185,7 +287,6 @@ def ShowMyStudents():
                     "PROCESS_7":PROCESS_7
                 }
                 akademisyenAdi = user1.username
-                academician = Academician.find_by_username(akademisyenAdi)
 
                 connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
