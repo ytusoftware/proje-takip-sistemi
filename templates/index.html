@@ -61,9 +61,11 @@
 								<a href="/project/academician_proposals?page=1">Akademisyen Proje Önerileri</a>
 							</li>
 							{% if template_values["user_type"] == "student" %}
+							{% if template_values["PROCESS_1"] %}
 							<li>
 								<a href="/project/send_friend_request">Proje Arkadaşı Ekle</a>
 							</li>
+							{% endif %}
 							<li>
 								<a href="/project/my_sent_requests?page=1">Gönderilen Arkadaşlık İstekleri</a>
 							</li>
@@ -73,44 +75,52 @@
 							<li>
 								<a href="/project/my_friend">Proje Arkadaşım</a>
 							</li>
+							{% if template_values["PROCESS_2"] %}
 							<li>
 								<a href="/project/apply_project">Proje Başvurusu Yap</a>
 							</li>
+							{% endif %}
 							<li>
 								<a href="/project/project_apply_status">Proje Başvuru Durumu</a>
 							</li>
+							{% if template_values["PROCESS_4"] %}
 							<li>
-								<a href="#">Form-2 Gönder</a>
-								<!-- /project/send_form2  -->
+								<a href="/project/send_form2">Form-2 Gönder</a>
 							</li>
+							{% endif %}
 							<li>
-								<a href="#">Gönderilen Form-2</a>
+								<a href="/project/form2_status">Form-2 Onay Durumu</a>
 							</li>
+							{% if template_values["PROCESS_7"] %}
 							<li>
-								<a href="#">Projem</a>
+								<a href="/project/send_project_report">Proje Raporu Gönder</a>
 							</li>
+							{% endif %}
 							<li>
-								<a href="#">Proje Raporu Gönder</a>
-							</li>
-							<li>
-								<a href="#">Gönderilen Proje Raporları</a>
+								<a href="/project/sent_project_reports">Gönderilen Proje Raporları</a>
 							</li>
 
 							{% else %}
+							{% if template_values["PROCESS_1"] %}
 							<li>
 								<a href="/project/propose_project">Proje Öner</a>
 							</li>
+							{% endif %}
 							<li>
 								<a href="/project/my_proposals?page=1">Önerilen Projelerim</a>
 							</li>
+							{% if template_values["PROCESS_3"] %}
 							<li>
 								<a href="/project/student_project_applications?page=1">Öğrenci Proje Başvuruları</a>
 							</li>
+							{% endif %}
+							{% if template_values["PROCESS_5"] %}
 							<li>
-								<a href="#">Onay Bekleyen Form-2</a>
+								<a href="/project/form2_pending_projects?page=1">Onay Bekleyen Form-2</a>
 							</li>
+							{% endif %}
 							<li>
-								<a href="#">Öğrenci Proje Raporları Görüntüle</a>
+								<a href="/project/get_student_report">Öğrenci Proje Raporu İndir</a>
 							</li>
 							{% endif %}
 						</ul>

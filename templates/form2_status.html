@@ -1,0 +1,58 @@
+{% extends "index.html" %}
+
+<!-- external js ve css dosyalari include etmek icin -->
+{% block includes %}
+<!--
+<link rel="stylesheet" href="/static/css/propose_project/propose_project.css">
+-->
+
+<script type="text/javascript" src="/static/js/form2_status/form2_status.js"></script>
+
+<!-- NOT: Bu js kodu burada yazilmak zorunda. External js dosyasina python degiskenlerini (jinja2 aracaligiyla gelen) aktarmak icin -->
+<script type="text/javascript">
+        var template_values_curr = JSON.parse('{{ template_values_curr|safe }}');
+        pass_func(template_values_curr);
+</script>
+
+
+<!-- Add icon library -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+{% endblock %}
+
+
+<!-- Ortadaki degisen alan icin HTML kodlar -->
+{% block content %}
+
+
+<div class="container-fluid">
+
+        <div id="title" class="mb-5 row">
+
+                <div class="col">
+                        <h2>Form-2 Durumu</h2>
+                </div>
+
+        </div>
+
+        <div id="place_pointer" name="be_deleted" class="row">
+
+                <div id="apply_status" class="col">
+
+                </div>
+
+
+        </div>
+
+
+        <div name="be_deleted" class="row mt-2">
+                <div class="col">
+                        <button onclick="location.href='/project/download_report?report_type=form2'" type="button" class="col-1 btn btn-primary"><i class="fa fa-download"></i> İndir</button>
+                </div>
+        </div>
+
+
+</div>
+
+
+{% endblock %}
