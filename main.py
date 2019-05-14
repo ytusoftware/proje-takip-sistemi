@@ -38,8 +38,6 @@ PROCESS_5 = True
 #Form-2 kurul onayi sureci
 PROCESS_6 = True
 
-#MILESTONE!!! --> Form-2 si onaylanmayan ogrencileri sistem tarafindan inactive yapilir
-
 #Rapor gonderme sureci
 PROCESS_7 = True
 

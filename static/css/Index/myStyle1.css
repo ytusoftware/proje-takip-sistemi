@@ -6,10 +6,10 @@
     display: flex;
     width: 100%;
     align-items: stretch;
-}	
+}
 #sidebar{
     min-width: 250px;
-    max-width: 250px;   
+    max-width: 250px;
 	min-height: 100vh;
 }
 a[data-toggle="collapse"]{
@@ -60,7 +60,7 @@ nav ul li a{
 .dropdown-toggle::before{
 	display:none;
 	color:white;
-	
+
 }
 .dropdown-toggle::after {
     display: block;
@@ -70,10 +70,10 @@ nav ul li a{
     transform: translateY(-50%);
 }@media (max-width: 768px) {
     #sidebar {
-        margin-left: -250px;
+        margin-left: 0px;
     }
     #sidebar.active {
-        margin-left: 0;
+        margin-left: 0px;
     }
 }
 #sidebar.active {
