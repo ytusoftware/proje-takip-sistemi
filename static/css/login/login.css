@@ -21,8 +21,8 @@ h1 {
 div.login-border {
         border: 3px solid #4CAF50;
         box-sizing: content-box;
-        padding-left: 150px;
-        padding-right: 150px;
+        padding-left: 100px;
+        padding-right: 100px;
         display: inline-block;
         margin-bottom: 30px;
         margin-top: 70px;
