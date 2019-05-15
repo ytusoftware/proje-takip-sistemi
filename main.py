@@ -190,36 +190,37 @@ def createNotice():
 @app.route('/Notices/PublishNotice',methods=["POST"])
 def saveNotice():
     if request.method=="POST":
-        user1 = session["user"]
-        template_values={
-            "user_type":session["user_type"],
-            "PROCESS_1":PROCESS_1,
-            "PROCESS_2":PROCESS_2,
-            "PROCESS_3":PROCESS_3,
-            "PROCESS_4":PROCESS_4,
-            "PROCESS_5":PROCESS_5,
-            "PROCESS_6":PROCESS_6,
-            "PROCESS_7":PROCESS_7
-        }
-        akademisyenAdi = user1.username
+        if session.get("logged_in"):
+            user1 = session["user"]
+            template_values={
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
+            }
+            akademisyenAdi = user1.username
 
-        current_date_time = datetime.datetime.today()
-        noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
-        title = request.form["title"]
-        cont = request.form["contentNotice"]
-        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            current_date_time = datetime.datetime.today()
+            noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
+            title = request.form["title"]
+            cont = request.form["contentNotice"]
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
-        cursor = connection.cursor()
+            cursor = connection.cursor()
 
-        try:
+            try:
 
-            cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,akademisyenAdi))
-            connection.commit()
-            
-        finally:
-            
-            connection.close()
-            
+                cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,akademisyenAdi))
+                connection.commit()
+                
+            finally:
+                
+                connection.close()
+                
     return redirect(url_for("createNotice"))
 
 #Akademisyenin kendi yayinladigi duyurulari gormesi
@@ -318,24 +319,25 @@ def createGeneralNotice():
 @app.route('/Notices/PublishGeneralNotice',methods=['POST'])
 def saveGeneralNotice():
     if request.method=="POST":
- 
-        userName = 'Admin'
+        if session.get("admin_logged_in"):
 
-        current_date_time = datetime.datetime.today()
-        noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
-        title = request.form["title"]
-        cont = request.form["contentNotice"]
+            userName = 'Admin'
 
-        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            current_date_time = datetime.datetime.today()
+            noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
+            title = request.form["title"]
+            cont = request.form["contentNotice"]
 
-        cursor = connection.cursor()
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
-        try:
+            cursor = connection.cursor()
 
-            cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,userName))
-            connection.commit()
-        finally:
-            connection.close()
+            try:
+
+                cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,userName))
+                connection.commit()
+            finally:
+                connection.close()
     return redirect(url_for("createGeneralNotice"))
 
 #Kullanicilarin Admin in yayinladigi duyurulari goruntuleyebilmesi
