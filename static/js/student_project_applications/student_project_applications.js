@@ -190,18 +190,20 @@ function pass_func(template_values_curr) {
                         parent_li = $(this).parent();
                         student_no = parent_li.find("input").prop("value");
                         $.get("/project/confirm_project_application?student_no="+student_no+"&project_id="+project_id, function(data, status){
-                                parent_li.find("button").hide();
+                                //parent_li.find("button").hide();
+                                parent_li.hide()
+                                /*
                                 parent_li.append('<div class="alert alert-success" role="alert">'+
                                         'Proje başvurusu onaylandı!'+
-                                                '</div>');
+                                                '</div>');*/
 
-                                parent_ul = parent_li.parent();
-                                parent_ul.find("li").each(function(){
+                                //parent_ul = parent_li.parent();
+                                /*parent_ul.find("li").each(function(){
                                         if ($(this).find("input").val() != student_no) {
                                                 $(this).hide();
 
                                         }
-                                });
+                                });*/
                         });
 
                 });

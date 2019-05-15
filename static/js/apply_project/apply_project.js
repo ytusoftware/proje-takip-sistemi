@@ -39,10 +39,10 @@ function pass_func(template_values_curr) {
                                                   );
 
                                 }
-                                else {
+                                else if(template_values_curr["app_cnt_limit"] == "true"){
                                         $('#title').after('<div class="ml-2 row" id="danger_message">' +
                                                                 '<div class="alert alert-danger" role="alert">' +
-                                                                        '<strong>Hata! </strong>' + '<label id="danger_source">' + " Proje başvuru işlemi başarısız oldu. Lütfen tekrar deneyiniz." +
+                                                                        '<strong>Hata! </strong>' + '<label id="danger_source">' + " Seçilen proje için maksimum başvuru sayısına ulaşıldı. Lütfen daha sonra tekrar deneyiniz." +
                                                                 '</div>' +
                                                           '</div>'
                                                   );

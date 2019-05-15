@@ -57,9 +57,10 @@ function pass_func(template_values_curr) {
                                         '<li class="list-group-item">' +
                                                 '<input type="hidden" name="project_id" value='+project[0]+'>' +
                                                 '<label>' + project[1] + '</label>' +
+                                                '<strong>  (Kapasite: </strong>'+'<strong id="cap_edit">'+project[3]+'</strong>'+'<strong>, Doluluk: '+project[4]+')'+'</strong>'+
                                                 '<div class="container-fluid">' +
                                                         '<div class="row">' +
-                                                                '<p class="col-1 bg-success text-white text-center">'+ project[2] + '</p>' +
+                                                                '<p class="col-2 bg-success text-white text-center">'+ project[2] + '</p>' +
                                                         '</div>' +
 
                                                 '</div>' +
@@ -184,6 +185,7 @@ function pass_func(template_values_curr) {
 
                         //Duzenleme icin olan modal windowda gerekli ilklendirmeler yapilir
                         $("#edit_project_name").prop("value",parent_element.find("label").text());
+                        $("#edit_project_capacity").prop("value",parent_element.find("#cap_edit").text());
 
                         //Duzenleme icin modal window acilir
                         $('#duzenlemeModal').modal('show');
@@ -193,44 +195,67 @@ function pass_func(template_values_curr) {
 
                 $("#modal_onay_buton_2").click(function(){
 
+                        var re = /^[1-9][0-9]*$/i;
+
                         //Guncellemis proje bilgileri cekiliyor
                         new_project_name = $("#edit_project_name").prop("value");
                         new_project_type = $("#select_id").prop("value");
+                        new_project_capacity = $("#edit_project_capacity").prop("value");
+
+                        if (new_project_capacity.match(re) === null) {
+                                $("#search-box-parent").after('<div class="alert alert-danger alert-dismissible fade show" role="alert">'+
+                                                                         'Proje kapasitesi sıfırdan büyük bir sayı olmalıdır!'+
+                                                                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'+
+                                                                                        '<span aria-hidden="true">&times;</span>'+
+                                                                                '</button>'+
+                                                              '</div>'
+                                                        );
+                        }
+
+                        else if (new_project_name === "") {
+                                $("#search-box-parent").after('<div class="alert alert-danger alert-dismissible fade show" role="alert">'+
+                                                                         'Proje adı boş bırakılamaz!'+
+                                                                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'+
+                                                                                        '<span aria-hidden="true">&times;</span>'+
+                                                                                '</button>'+
+                                                              '</div>'
+                                                        );
+                        }
+
+                        else {
+                                //Guncellenen proje bilgileri sunucuya AJAX POST ile aktariliyor
+                                $.ajax({
+                                        type : "POST",
+                                        url : "/project/edit_proposal",
+                                        contentType: "application/json;charset=UTF-8",
+                                        dataType: "json",
+                                        data : JSON.stringify({"project_id":project_id,
+                                                "new_project_name":new_project_name,
+                                                "new_project_type":new_project_type,
+                                                "new_project_capacity":new_project_capacity}),
+
+                                        success: function(data, status, xhr){
+                                                $("#search-box-parent").after('<div class="alert alert-success alert-dismissible fade show" role="alert">'+
+                                                                                         'Değişiklikler başarılı bir şekilde kaydedildi!'+
+                                                                                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'+
+                                                                                                        '<span aria-hidden="true">&times;</span>'+
+                                                                                                '</button>'+
+                                                                              '</div>'
+                                                                        );
 
 
-                        //Guncellenen proje bilgileri sunucuya AJAX POST ile aktariliyor
-                        $.ajax({
-                                type : "POST",
-                                url : "/project/edit_proposal",
-                                contentType: "application/json;charset=UTF-8",
-                                dataType: "json",
-                                data : JSON.stringify({"project_id":project_id,
-                                        "new_project_name":new_project_name,
-                                        "new_project_type":new_project_type}),
-
-                                success: function(data, status, xhr){
-                                        $("#search-box-parent").after('<div class="alert alert-success alert-dismissible fade show" role="alert">'+
-                                                                                 'Değişiklikler başarılı bir şekilde kaydedildi!'+
-                                                                                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'+
-                                                                                                '<span aria-hidden="true">&times;</span>'+
-                                                                                        '</button>'+
-                                                                      '</div>'
-                                                                );
+                                                //Guncellenen degerler set kullanicin gordugu ekranda set ediliyor
+                                                parent_element.find("label").text(new_project_name);
+                                                parent_element.find("div div p").text(new_project_type);
 
 
-                                        //Guncellenen degerler set kullanicin gordugu ekranda set ediliyor
-                                        parent_element.find("label").text(new_project_name);
-                                        parent_element.find("div div p").text(new_project_type);
+                                        }
+                                });
+
+                        }
 
 
-                                }
-                        });
                 });
-
-
-
-
-
 
 
         });

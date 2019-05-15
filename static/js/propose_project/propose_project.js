@@ -12,12 +12,23 @@ function pass_func(template_values_curr) {
                 $("#kaydet_button").on("click", function() {
                         var everythingIsOkay = true;
                         var msg = "";
-
+                        var capacity_str = $("#project_capacity").val();
+                        var re = /^[1-9][0-9]*$/i;
 
                         /* Proje adi bos mu? */
                         if ($("#project_name").val() == "") {
                                 everythingIsOkay = false;
-                                msg = " Proje adi bos birakilamaz!"
+                                msg = " Proje adı boş bırakılamaz!"
+                        }
+
+                        else if (capacity_str == "") {
+                                everythingIsOkay = false;
+                                msg = " Proje kapasitesi boş bırakılamaz!"
+                        }
+
+                        else if(capacity_str.match(re) === null) {
+                                everythingIsOkay = false;
+                                msg = " Proje kapasitesi 0'dan büyük bir sayı olmalıdır!"
                         }
 
 

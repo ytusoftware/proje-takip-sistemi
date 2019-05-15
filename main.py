@@ -207,11 +207,15 @@ def saveNotice():
         cont = request.form["contentNotice"]
 
         connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
-
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,akademisyenAdi))
-        connection.commit()
-        connection.close()
+
+        try:
+            cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,akademisyenAdi))
+        finally:
+            connection.commit()
+            connection.close()
+
+
     return redirect(url_for("createNotice"))
 
 #Akademisyenin kendi yayinladigi duyurulari gormesi
@@ -238,26 +242,31 @@ def showMyNotices():
 
         cursor = connection.cursor()
 
-        cursor.execute(
-            'SELECT n.id,n.title,n.content,n.date from notice n where n.username=%s order by n.date desc',(Academician_userName,))
+        try:
+            cursor.execute(
+                'SELECT n.id,n.title,n.content,n.date from notice n where n.username=%s order by n.date desc',(Academician_userName,))
 
-        data = cursor.fetchall()
-        num_of_notices=len(data)
-        disable_next_page = False
-        if num_of_notices < 11:
-            disable_next_page = True
-        if((request.args.get("page"))==None):
-            pageno=1
-        else:
-            pageno=int(request.args.get("page"))
-        #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
-        template_values_curr = {
-            "error":False,
-            "notices":data,
-            "disable_next_page":disable_next_page,
-            "init_page_num":pageno
-        }
-        return render_template("myNoticePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
+            data = cursor.fetchall()
+            num_of_notices=len(data)
+            disable_next_page = False
+            if num_of_notices < 11:
+                disable_next_page = True
+            if((request.args.get("page"))==None):
+                pageno=1
+            else:
+                pageno=int(request.args.get("page"))
+            #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+            template_values_curr = {
+                "error":False,
+                "notices":data,
+                "disable_next_page":disable_next_page,
+                "init_page_num":pageno
+            }
+            return render_template("myNoticePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
+        finally:
+            connection.close()
+
+
 
     return redirect(url_for("login_handle"))
 
@@ -275,11 +284,13 @@ def updateNotice():
                 connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
                 cursor = connection.cursor()
-                cursor.execute("UPDATE notice SET content=%s where id="+str(id),(content,))
-                connection.commit()
-                connection.close()
 
-                return redirect(url_for("showMyNotices"))
+                try:
+                    cursor.execute("UPDATE notice SET content=%s where id="+str(id),(content,))
+                    return redirect(url_for("showMyNotices"))
+                finally:
+                    connection.commit()
+                    connection.close()
 
 
         return redirect(url_for("login_handle"))
@@ -310,30 +321,35 @@ def ShowMyStudents():
                 connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
                 cursor = connection.cursor()
-                cursor.execute(
-                'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type FROM Student,Project,Academician WHERE Academician.username=%s AND \
-                Academician.username=Project.username AND \
-                Student.project_id=Project.project_id AND Student.grade is NULL', (akademisyenAdi,))
+                try:
+                    cursor.execute(
+                    'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type FROM Student,Project,Academician WHERE Academician.username=%s AND \
+                    Academician.username=Project.username AND \
+                    Student.project_id=Project.project_id AND Student.grade is NULL', (akademisyenAdi,))
 
-                data = cursor.fetchall()
-                #students = academician.get_students()
-                #hocanin proje verdigi ogrencisi olmayabilir
-                num_of_students=len(data)
-                disable_next_page = False
-                if num_of_students < 11:
-                    disable_next_page = True
-                if((request.args.get("page"))==None):
-                    pageno=1
-                else:
-                    pageno=int(request.args.get("page"))
-                #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
-                template_values_curr = {
-                    "error":False,
-                    "students":data,
-                    "disable_next_page":disable_next_page,
-                    "init_page_num":pageno
-                }
-                return render_template("gradePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
+                    data = cursor.fetchall()
+                    #students = academician.get_students()
+                    #hocanin proje verdigi ogrencisi olmayabilir
+                    num_of_students=len(data)
+                    disable_next_page = False
+                    if num_of_students < 11:
+                        disable_next_page = True
+                    if((request.args.get("page"))==None):
+                        pageno=1
+                    else:
+                        pageno=int(request.args.get("page"))
+                    #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+                    template_values_curr = {
+                        "error":False,
+                        "students":data,
+                        "disable_next_page":disable_next_page,
+                        "init_page_num":pageno
+                    }
+                    return render_template("gradePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
+                finally:
+                    connection.close()
+
+
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
         return redirect(url_for("login_handle"))
 #Girilen Notu Sisteme Ekleyelim
@@ -383,30 +399,37 @@ def ShowMyStudentsGrade():
                 connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
                 cursor = connection.cursor()
-                cursor.execute(
-                'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type,Student.grade FROM Student,Project,Academician WHERE Academician.username=%s AND \
-                Academician.username=Project.username AND \
-                Student.project_id=Project.project_id AND Student.grade is not NULL', (akademisyenAdi,))
 
-                data = cursor.fetchall()
-                #students = academician.get_students()
-                #hocanin proje verdigi ogrencisi olmayabilir
-                num_of_students=len(data)
-                disable_next_page = False
-                if num_of_students < 11:
-                    disable_next_page = True
-                if((request.args.get("page"))==None):
-                    pageno=1
-                else:
-                    pageno=int(request.args.get("page"))
-                #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
-                template_values_curr = {
-                    "error":False,
-                    "students":data,
-                    "disable_next_page":disable_next_page,
-                    "init_page_num":pageno
-                }
-                return render_template("gradePage2.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
+                try:
+
+                    cursor.execute(
+                    'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type,Student.grade FROM Student,Project,Academician WHERE Academician.username=%s AND \
+                    Academician.username=Project.username AND \
+                    Student.project_id=Project.project_id AND Student.grade is not NULL', (akademisyenAdi,))
+
+                    data = cursor.fetchall()
+                    #students = academician.get_students()
+                    #hocanin proje verdigi ogrencisi olmayabilir
+                    num_of_students=len(data)
+                    disable_next_page = False
+                    if num_of_students < 11:
+                        disable_next_page = True
+                    if((request.args.get("page"))==None):
+                        pageno=1
+                    else:
+                        pageno=int(request.args.get("page"))
+                    #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+                    template_values_curr = {
+                        "error":False,
+                        "students":data,
+                        "disable_next_page":disable_next_page,
+                        "init_page_num":pageno
+                    }
+                    return render_template("gradePage2.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
+                finally:
+                    connection.close()
+
+
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
         return redirect(url_for("login_handle"))
 
@@ -491,6 +514,8 @@ def admin_index_handle():
             email = request.form["email"]
             user_type = request.form['tipsec']
 
+            error_source = "mail"
+
 
             try:
 
@@ -508,10 +533,6 @@ def admin_index_handle():
 
 
 
-                #Veri tabanina yazma islemi
-                admin.write_db(user_type, student_no_username, name, sname)
-
-
 
                 #SMTP server giris
                 server = smtplib.SMTP("smtp.gmail.com:587")
@@ -527,6 +548,12 @@ def admin_index_handle():
                 server.quit()
 
 
+                error_source = "database"
+
+                #Veri tabanina yazma islemi
+                admin.write_db(user_type, student_no_username, name, sname)
+
+
                 template_values = {
                 'message':"success"
                 }
@@ -536,7 +563,13 @@ def admin_index_handle():
 
             except Exception as e:
                 student_no_username = request.form["student_no_username"]
-                error_message = "Hatanin sebebi " + student_no_username + " kullanici adli/ogrenci nolu kullanicinin veri tabaninda bulunmasi olabilir."
+
+                if error_source == "mail":
+                    error_message = "Kullanıcıya şifresi mail ile gönderilemedi. Lütfen tekrar deneyiniz."
+
+                elif error_source == "database":
+                    error_message = student_no_username + " kullanici adlı/ögrenci nolu kullanici veri tabanında kayıtlıdır!"
+
 
 
                 template_values={
@@ -631,7 +664,7 @@ def project_academician_proposals_handler():
             query_offset = (page_offset-1)*10
 
             try:
-                cursor.execute('SELECT project_id,project_name,project_type,username,proposal_type FROM Project WHERE proposal_type=%s OFFSET %s LIMIT 11',("academician",query_offset))
+                cursor.execute('SELECT project_id,project_name,project_type,username,proposal_type FROM Project WHERE proposal_type=%s AND capacity IS NOT NULL OFFSET %s LIMIT 11',("academician",query_offset))
 
                 #data listelerin listesi
                 data = cursor.fetchall()
@@ -813,10 +846,12 @@ def academician_propose_project_handler():
                 academician = session["user"]
                 project_name = request.form["project_name"]
                 project_type = request.form["tipsec"]
+                capacity = request.form["project_capacity"]
+                capacity = int(capacity)
 
 
                 #Veri tabani kaydi
-                academician.propose_project(project_name, project_type)
+                academician.propose_project(project_name, project_type, capacity)
 
 
 
@@ -1030,10 +1065,12 @@ def academician_edit_proposal_handler():
             project_id = request.json['project_id']
             new_project_name = request.json['new_project_name']
             new_project_type = request.json['new_project_type']
+            new_project_capacity = request.json['new_project_capacity']
+            new_project_capacity = int(new_project_capacity)
 
             academician  = session["user"]
 
-            success = academician.set_project(project_id, new_project_name, new_project_type)
+            success = academician.set_project(project_id, new_project_name, new_project_type, new_project_capacity)
 
             success = {
                 "success":success
@@ -1304,6 +1341,7 @@ def apply_project_handler():
             #POST METOTTAN GELEN PARAMETRELER
             success = request.args.get("success")
             capacity_full = request.args.get("capacity_full")
+            app_cnt_limit = request.args.get("app_cnt_limit")
 
             success = str(success)
 
@@ -1319,7 +1357,8 @@ def apply_project_handler():
                 "projects":projects,
                 "academicians":academicians,
                 "success":success,
-                "capacity_full":capacity_full
+                "capacity_full":capacity_full,
+                "app_cnt_limit":app_cnt_limit
             }
 
 
@@ -1366,6 +1405,7 @@ def apply_project_handler():
 
 
             try:
+                app_cnt_limit = None
                 #Proje akademisyen önerisinden başvuruldu
                 if proposal_type == "academician_proposal":
 
@@ -1378,7 +1418,10 @@ def apply_project_handler():
                         return redirect("/project/apply_project?success=false&capacity_full=true")
 
 
-                    user.apply_academician_project(project_id)
+                    app_cnt_limit = user.apply_academician_project(project_id)
+
+                    if app_cnt_limit:
+                        return redirect("/project/apply_project?success=false&app_cnt_limit=true")
 
                 elif proposal_type == "student_proposal":
 
