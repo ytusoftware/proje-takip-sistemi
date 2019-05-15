@@ -207,13 +207,19 @@ def saveNotice():
         noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
         title = request.form["title"]
         cont = request.form["contentNotice"]
-
         connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,akademisyenAdi))
-        connection.commit()
-        connection.close()
+
+        try:
+
+            cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,akademisyenAdi))
+            connection.commit()
+            
+        finally:
+            
+            connection.close()
+            
     return redirect(url_for("createNotice"))
 
 #Akademisyenin kendi yayinladigi duyurulari gormesi
@@ -240,26 +246,29 @@ def showMyNotices():
 
         cursor = connection.cursor()
 
-        cursor.execute(
-            'SELECT n.id,n.title,n.content,n.date from notice n where n.username=%s order by n.date desc',(Academician_userName,))
+        try:
 
-        data = cursor.fetchall()
-        num_of_notices=len(data)
-        disable_next_page = False
-        if num_of_notices < 11:
-            disable_next_page = True
-        if((request.args.get("page"))==None):
-            pageno=1
-        else:
-            pageno=int(request.args.get("page"))
-        #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
-        template_values_curr = {
-            "error":False,
-            "notices":data,
-            "disable_next_page":disable_next_page,
-            "init_page_num":pageno
-        }
-        connection.close()
+            cursor.execute(
+                'SELECT n.id,n.title,n.content,n.date from notice n where n.username=%s order by n.date desc',(Academician_userName,))
+
+            data = cursor.fetchall()
+            num_of_notices=len(data)
+            disable_next_page = False
+            if num_of_notices < 11:
+                disable_next_page = True
+            if((request.args.get("page"))==None):
+                pageno=1
+            else:
+                pageno=int(request.args.get("page"))
+            #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+            template_values_curr = {
+                "error":False,
+                "notices":data,
+                "disable_next_page":disable_next_page,
+                "init_page_num":pageno
+            }
+        finally:
+            connection.close()
         return render_template("myNoticePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
 
     return redirect(url_for("login_handle"))
@@ -277,13 +286,17 @@ def updateNotice():
                 
                 current_date_time = datetime.datetime.today()
                 noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
-                
+
                 connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
                 cursor = connection.cursor()
-                cursor.execute("UPDATE notice SET content=%s,date=%s where id="+str(id),(content,noticeTime,))
-                connection.commit()
-                connection.close()
+
+                try:
+
+                    cursor.execute("UPDATE notice SET content=%s,date=%s where id="+str(id),(content,noticeTime,))
+                    connection.commit()
+                finally:
+                    connection.close()
 
                 return redirect(url_for("showMyNotices"))
 
@@ -316,9 +329,13 @@ def saveGeneralNotice():
         connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,userName))
-        connection.commit()
-        connection.close()
+
+        try:
+
+            cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,userName))
+            connection.commit()
+        finally:
+            connection.close()
     return redirect(url_for("createGeneralNotice"))
 
 #Kullanicilarin Admin in yayinladigi duyurulari goruntuleyebilmesi
@@ -343,28 +360,31 @@ def showGeneralNoticestoUsers():
 
         cursor = connection.cursor()
 
-        cursor.execute(
-            'SELECT n.id,n.title,n.content,n.date from notice n where n.username=%s order by n.date desc',(userName,))
+        try:
 
-        data = cursor.fetchall()
-        num_of_notices=len(data)
-        disable_next_page = False
-        if num_of_notices < 11:
-            disable_next_page = True
-        if((request.args.get("page"))==None):
-            pageno=1
-        else:
-            pageno=int(request.args.get("page"))
-        #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
-        template_values_curr = {
-            "error":False,
-            "notices":data,
-            "disable_next_page":disable_next_page,
-            "init_page_num":pageno
-        }
-        
-        connection.close()
+            cursor.execute(
+                'SELECT n.id,n.title,n.content,n.date from notice n where n.username=%s order by n.date desc',(userName,))
 
+            data = cursor.fetchall()
+            num_of_notices=len(data)
+            disable_next_page = False
+            if num_of_notices < 11:
+                disable_next_page = True
+            if((request.args.get("page"))==None):
+                pageno=1
+            else:
+                pageno=int(request.args.get("page"))
+            #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+            template_values_curr = {
+                "error":False,
+                "notices":data,
+                "disable_next_page":disable_next_page,
+                "init_page_num":pageno
+            }
+            
+        finally:
+            connection.close()
+    
         return render_template("GeneralNoticePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
 
     return redirect(url_for("login_handle"))
@@ -382,26 +402,30 @@ def showMyGeneralNotices():
 
         cursor = connection.cursor()
 
-        cursor.execute(
-            'SELECT n.id,n.title,n.content,n.date from notice n where n.username=%s order by n.date desc',(userName,))
+        try:
 
-        data = cursor.fetchall()
-        num_of_notices=len(data)
-        disable_next_page = False
-        if num_of_notices < 11:
-            disable_next_page = True
-        if((request.args.get("page"))==None):
-            pageno=1
-        else:
-            pageno=int(request.args.get("page"))
-        #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
-        template_values_curr = {
-            "error":False,
-            "notices":data,
-            "disable_next_page":disable_next_page,
-            "init_page_num":pageno
-        }
-        connection.close()
+            cursor.execute(
+                'SELECT n.id,n.title,n.content,n.date from notice n where n.username=%s order by n.date desc',(userName,))
+
+            data = cursor.fetchall()
+            num_of_notices=len(data)
+            disable_next_page = False
+            if num_of_notices < 11:
+                disable_next_page = True
+            if((request.args.get("page"))==None):
+                pageno=1
+            else:
+                pageno=int(request.args.get("page"))
+            #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+            template_values_curr = {
+                "error":False,
+                "notices":data,
+                "disable_next_page":disable_next_page,
+                "init_page_num":pageno
+            }
+        finally:
+            
+            connection.close()
 
         return render_template("myGeneralNoticePage.html",template_values_curr=json.dumps(template_values_curr))
 
@@ -422,9 +446,14 @@ def updateGeneralNotice():
             connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
             cursor = connection.cursor()
-            cursor.execute("UPDATE notice SET content=%s,date=%s where id="+str(id),(content,noticeTime,))
-            connection.commit()
-            connection.close()
+
+            try:
+                    
+                cursor.execute("UPDATE notice SET content=%s,date=%s where id="+str(id),(content,noticeTime,))
+                connection.commit()
+
+            finally:
+                connection.close()
 
             return redirect(url_for("showMyGeneralNotices"))
 
@@ -456,31 +485,35 @@ def ShowMyStudents():
                 connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
                 cursor = connection.cursor()
-                cursor.execute(
-                'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type FROM Student,Project,Academician WHERE Academician.username=%s AND \
-                Academician.username=Project.username AND \
-                Student.project_id=Project.project_id AND Student.grade is NULL', (akademisyenAdi,))
 
-                data = cursor.fetchall()
-                #students = academician.get_students()
-                #hocanin proje verdigi ogrencisi olmayabilir
-                num_of_students=len(data)
-                disable_next_page = False
-                if num_of_students < 11:
-                    disable_next_page = True
-                if((request.args.get("page"))==None):
-                    pageno=1
-                else:
-                    pageno=int(request.args.get("page"))
-                #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
-                template_values_curr = {
-                    "error":False,
-                    "students":data,
-                    "disable_next_page":disable_next_page,
-                    "init_page_num":pageno
-                }
+                try:
                 
-                connection.close()
+                    cursor.execute(
+                    'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type FROM Student,Project,Academician WHERE Academician.username=%s AND \
+                    Academician.username=Project.username AND \
+                    Student.project_id=Project.project_id AND Student.grade is NULL', (akademisyenAdi,))
+
+                    data = cursor.fetchall()
+                    #students = academician.get_students()
+                    #hocanin proje verdigi ogrencisi olmayabilir
+                    num_of_students=len(data)
+                    disable_next_page = False
+                    if num_of_students < 11:
+                        disable_next_page = True
+                    if((request.args.get("page"))==None):
+                        pageno=1
+                    else:
+                        pageno=int(request.args.get("page"))
+                    #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+                    template_values_curr = {
+                        "error":False,
+                        "students":data,
+                        "disable_next_page":disable_next_page,
+                        "init_page_num":pageno
+                    }
+
+                finally:
+                    connection.close()
 
                 return render_template("gradePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
@@ -532,31 +565,35 @@ def ShowMyStudentsGrade():
                 connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
                 cursor = connection.cursor()
-                cursor.execute(
-                'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type,Student.grade FROM Student,Project,Academician WHERE Academician.username=%s AND \
-                Academician.username=Project.username AND \
-                Student.project_id=Project.project_id AND Student.grade is not NULL', (akademisyenAdi,))
 
-                data = cursor.fetchall()
-                #students = academician.get_students()
-                #hocanin proje verdigi ogrencisi olmayabilir
-                num_of_students=len(data)
-                disable_next_page = False
-                if num_of_students < 11:
-                    disable_next_page = True
-                if((request.args.get("page"))==None):
-                    pageno=1
-                else:
-                    pageno=int(request.args.get("page"))
-                #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
-                template_values_curr = {
-                    "error":False,
-                    "students":data,
-                    "disable_next_page":disable_next_page,
-                    "init_page_num":pageno
-                }
+                try:
                 
-                connection.close()
+                    cursor.execute(
+                    'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type,Student.grade FROM Student,Project,Academician WHERE Academician.username=%s AND \
+                    Academician.username=Project.username AND \
+                    Student.project_id=Project.project_id AND Student.grade is not NULL', (akademisyenAdi,))
+
+                    data = cursor.fetchall()
+                    #students = academician.get_students()
+                    #hocanin proje verdigi ogrencisi olmayabilir
+                    num_of_students=len(data)
+                    disable_next_page = False
+                    if num_of_students < 11:
+                        disable_next_page = True
+                    if((request.args.get("page"))==None):
+                        pageno=1
+                    else:
+                        pageno=int(request.args.get("page"))
+                    #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+                    template_values_curr = {
+                        "error":False,
+                        "students":data,
+                        "disable_next_page":disable_next_page,
+                        "init_page_num":pageno
+                    }
+
+                finally:
+                    connection.close()
 
                 return render_template("gradePage2.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
