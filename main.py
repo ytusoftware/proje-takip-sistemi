@@ -199,32 +199,34 @@ def createNotice():
 @app.route('/Notices/PublishNotice',methods=["POST"])
 def saveNotice():
     if request.method=="POST":
-        user1 = session["user"]
-        template_values={
-            "user_type":session["user_type"],
-            "PROCESS_1":PROCESS_1,
-            "PROCESS_2":PROCESS_2,
-            "PROCESS_3":PROCESS_3,
-            "PROCESS_4":PROCESS_4,
-            "PROCESS_5":PROCESS_5,
-            "PROCESS_6":PROCESS_6,
-            "PROCESS_7":PROCESS_7
-        }
-        akademisyenAdi = user1.username
+        if session.get("logged_in"):
+            user1 = session["user"]
+            template_values={
+                "user_type":session["user_type"],
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_2":PROCESS_2,
+                "PROCESS_3":PROCESS_3,
+                "PROCESS_4":PROCESS_4,
+                "PROCESS_5":PROCESS_5,
+                "PROCESS_6":PROCESS_6,
+                "PROCESS_7":PROCESS_7
+            }
+            akademisyenAdi = user1.username
 
-        current_date_time = datetime.datetime.today()
-        noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
-        title = request.form["title"]
-        cont = request.form["contentNotice"]
+            current_date_time = datetime.datetime.today()
+            noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
+            title = request.form["title"]
+            cont = request.form["contentNotice"]
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
-        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
-        cursor = connection.cursor()
+            cursor = connection.cursor()
 
-        try:
-            cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,akademisyenAdi))
-        finally:
-            connection.commit()
-            connection.close()
+            try:
+
+                cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,akademisyenAdi))
+            finally:
+                connection.commit()
+                connection.close()
 
 
     return redirect(url_for("createNotice"))
@@ -254,6 +256,7 @@ def showMyNotices():
         cursor = connection.cursor()
 
         try:
+
             cursor.execute(
                 'SELECT n.id,n.title,n.content,n.date from notice n where n.username=%s order by n.date desc',(Academician_userName,))
 
@@ -273,11 +276,9 @@ def showMyNotices():
                 "disable_next_page":disable_next_page,
                 "init_page_num":pageno
             }
-            return render_template("myNoticePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
         finally:
             connection.close()
-
-
+        return render_template("myNoticePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
 
     return redirect(url_for("login_handle"))
 
@@ -292,20 +293,182 @@ def updateNotice():
                 content = (request.args.get("msg"))
                 id = int(request.args.get("id"))
 
+                current_date_time = datetime.datetime.today()
+                noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
+
                 connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
                 cursor = connection.cursor()
 
                 try:
-                    cursor.execute("UPDATE notice SET content=%s where id="+str(id),(content,))
-                    return redirect(url_for("showMyNotices"))
-                finally:
+
+                    cursor.execute("UPDATE notice SET content=%s,date=%s where id="+str(id),(content,noticeTime,))
                     connection.commit()
+                finally:
                     connection.close()
 
 
+                return redirect(url_for("showMyNotices"))
+
         return redirect(url_for("login_handle"))
     return redirect(url_for("showMyNotices"))
+
+#Admin tarafindan duyuru olusturulmasi
+@app.route('/Notices/CreateGeneralNotice')
+def createGeneralNotice():
+    #Giris yapildi mi?
+    if session.get("admin_logged_in"):
+        return render_template("createGeneralNoticePage.html")
+
+
+    return redirect(url_for("admin_login_handle"))
+
+#Admin tarafindan olusturulan duyurunun veritabanına kaydı
+@app.route('/Notices/PublishGeneralNotice',methods=['POST'])
+def saveGeneralNotice():
+    if request.method=="POST":
+        if session.get("admin_logged_in"):
+
+            userName = 'Admin'
+
+            current_date_time = datetime.datetime.today()
+            noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
+            title = request.form["title"]
+            cont = request.form["contentNotice"]
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+
+            cursor = connection.cursor()
+
+            try:
+
+                cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,userName))
+                connection.commit()
+            finally:
+                connection.close()
+    return redirect(url_for("createGeneralNotice"))
+
+#Kullanicilarin Admin in yayinladigi duyurulari goruntuleyebilmesi
+@app.route('/Notices/GeneralNotices')
+def showGeneralNoticestoUsers():
+    if session.get("logged_in"):
+
+        template_values={
+            "user_type":session["user_type"],
+            "PROCESS_1":PROCESS_1,
+            "PROCESS_2":PROCESS_2,
+            "PROCESS_3":PROCESS_3,
+            "PROCESS_4":PROCESS_4,
+            "PROCESS_5":PROCESS_5,
+            "PROCESS_6":PROCESS_6,
+            "PROCESS_7":PROCESS_7
+        }
+
+        userName = 'Admin'
+
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+
+        cursor = connection.cursor()
+
+        try:
+
+            cursor.execute(
+                'SELECT n.id,n.title,n.content,n.date from notice n where n.username=%s order by n.date desc',(userName,))
+
+            data = cursor.fetchall()
+            num_of_notices=len(data)
+            disable_next_page = False
+            if num_of_notices < 11:
+                disable_next_page = True
+            if((request.args.get("page"))==None):
+                pageno=1
+            else:
+                pageno=int(request.args.get("page"))
+            #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+            template_values_curr = {
+                "error":False,
+                "notices":data,
+                "disable_next_page":disable_next_page,
+                "init_page_num":pageno
+            }
+
+        finally:
+            connection.close()
+
+        return render_template("GeneralNoticePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
+
+    return redirect(url_for("login_handle"))
+
+
+
+#Admin in duyurulari goruntulemesi
+@app.route('/Notices/MyGeneralNotices')
+def showMyGeneralNotices():
+    if session.get("admin_logged_in"):
+
+        userName = 'Admin'
+
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+
+        cursor = connection.cursor()
+
+        try:
+
+            cursor.execute(
+                'SELECT n.id,n.title,n.content,n.date from notice n where n.username=%s order by n.date desc',(userName,))
+
+            data = cursor.fetchall()
+            num_of_notices=len(data)
+            disable_next_page = False
+            if num_of_notices < 11:
+                disable_next_page = True
+            if((request.args.get("page"))==None):
+                pageno=1
+            else:
+                pageno=int(request.args.get("page"))
+            #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
+            template_values_curr = {
+                "error":False,
+                "notices":data,
+                "disable_next_page":disable_next_page,
+                "init_page_num":pageno
+            }
+        finally:
+
+            connection.close()
+
+        return render_template("myGeneralNoticePage.html",template_values_curr=json.dumps(template_values_curr))
+
+    return redirect(url_for("admin_login_handle"))
+
+#Duyuru iceriginin admin tarafindan guncellenmesi
+@app.route('/Notices/EditGeneralNotice',methods=["GET"])
+def updateGeneralNotice():
+    if request.method == 'GET':
+        if session.get("admin_logged_in"):
+
+            content = (request.args.get("msg"))
+            id = int(request.args.get("id"))
+
+            current_date_time = datetime.datetime.today()
+            noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+
+            cursor = connection.cursor()
+
+            try:
+
+                cursor.execute("UPDATE notice SET content=%s,date=%s where id="+str(id),(content,noticeTime,))
+                connection.commit()
+
+            finally:
+                connection.close()
+
+            return redirect(url_for("showMyGeneralNotices"))
+
+        return redirect(url_for("admin_login_handle"))
+    return redirect(url_for("showMyGeneralNotices"))
 
 
 #Akademisyenden proje alanlarin listesi
@@ -332,7 +495,9 @@ def ShowMyStudents():
                 connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
                 cursor = connection.cursor()
+
                 try:
+
                     cursor.execute(
                     'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type FROM Student,Project,Academician WHERE Academician.username=%s AND \
                     Academician.username=Project.username AND \
@@ -356,11 +521,11 @@ def ShowMyStudents():
                         "disable_next_page":disable_next_page,
                         "init_page_num":pageno
                     }
-                    return render_template("gradePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
+
                 finally:
                     connection.close()
 
-
+                return render_template("gradePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
         return redirect(url_for("login_handle"))
 #Girilen Notu Sisteme Ekleyelim

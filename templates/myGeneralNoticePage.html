@@ -1,0 +1,103 @@
+{% extends "admin_index.html" %}
+
+<!-- external js ve css dosyalari include etmek icin -->
+{% block includes %}
+
+<!-- Table sorter CSS -->
+<link rel="stylesheet" href="/static/css/theme.bootstrap_4.css">
+
+<script type="text/javascript" src="/static/js/notices/listMyGeneralNotice.js"></script>
+
+<!-- Table sorter js -->
+<script type="text/javascript" src="/static/js/jquery.tablesorter.js"></script>
+<script type="text/javascript" src="/static/js/jquery.tablesorter.widgets.js"></script>
+
+
+<!-- NOT: Bu js kodu burada yazilmak zorunda. External js dosyasina python degiskenlerini (jinja2 aracaligiyla gelen) aktarmak icin -->
+<script type="text/javascript">
+        var template_values_curr = JSON.parse('{{ template_values_curr|safe }}');
+        pass_func(template_values_curr);
+</script>
+
+{% endblock %}
+
+<!-- Ortadaki degisen alan icin HTML kodlar -->
+{% block content %}
+
+
+<div class="container-fluid">
+        <div class="row">
+                <div class="col">
+                        <h2>Duyurular</h2>
+                </div>
+        </div>
+
+
+        <div class="row">
+
+                <table id="notice-list" class="tablesorter-bootstrap">
+                        <thead>
+                                <tr>
+                                        <th scope="col">id</th>
+                                        <th scope="col">Başlık</th>
+                                        <th scope="col">Tarih</th>
+                                        <th scope="col">İçerik</th>
+                                </tr>
+                        </thead>
+                        <tbody>
+                                <!-- Projeler dinamik olarak listelenecek -->
+                        </tbody>
+                </table>
+
+        </div>
+        <div class="row">
+                <nav aria-label="...">
+                        <ul class="pagination">
+                                <li id="pageprev-li" class="page-item disabled">
+                                        <a id="pageprev" class="page-link" href="" aria-label="Önceki">
+                                                <span aria-hidden="true">&laquo;</span>
+                                                <span class="sr-only">Previous</span>
+                                        </a>
+                                </li>
+                                <li class="page-item disabled"><a id="pagenum" class="page-link">1</a></li>
+                                <li id="pagenext-li" class="page-item">
+                                        <a id="pagenext" class="page-link" href="/Notices/MyGeneralNotices?page=2" aria-label="Sonraki">
+                                                <span aria-hidden="true">&raquo;</span>
+                                                <span class="sr-only">Next</span>
+                                        </a>
+                                </li>
+                        </ul>
+                </nav>
+
+        </div>
+                <!-- Modal -->
+        <div class="modal fade" id="myModal" role="dialog">
+                <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                <div class="modal-header">
+                        <h4 id="title1"></h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                        <form action="/Notices/EditGeneralNotice" method="post" id="form" name="notFormu">
+                            <div class="form-group">
+                                    <input type="hidden" id="hid1"></input>
+                                    <textarea class="form-control" id="contentNotice" placeholder="Duyuru İçeriğini Giriniz" name="contentNotice" rows="5" required></textarea>
+                                    <div class="valid-feedback">Geçerli.</div>
+                                    <div class="invalid-feedback">Lütfen Bu Alani Doldurunuz.</div>
+                            </div>
+                
+                        </form>
+        
+                </div>
+                <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Kapat</button>
+                        <button id="submit" class="btn btn-success" action="submit">Güncelle</button>
+                </div>
+                </div>
+                </div>
+        </div>
+
+</div>
+
+{% endblock %}
