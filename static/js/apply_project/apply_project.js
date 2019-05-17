@@ -30,23 +30,30 @@ function pass_func(template_values_curr) {
 
 
                         else if(template_values_curr["success"] == "false") {
+                                var msg;
+
                                 if (template_values_curr["capacity_full"] == "true") {
-                                        $('#title').after('<div class="ml-2 row" id="danger_message">' +
-                                                                '<div class="alert alert-danger" role="alert">' +
-                                                                        '<strong>Hata! </strong>' + '<label id="danger_source">' + " Başvurulan projenin kapasitesi dolu." +
-                                                                '</div>' +
-                                                          '</div>'
-                                                  );
+                                        msg = " Başvurulan projenin kapasitesi dolu.";
 
                                 }
-                                else if(template_values_curr["app_cnt_limit"] == "true"){
-                                        $('#title').after('<div class="ml-2 row" id="danger_message">' +
-                                                                '<div class="alert alert-danger" role="alert">' +
-                                                                        '<strong>Hata! </strong>' + '<label id="danger_source">' + " Seçilen proje için maksimum başvuru sayısına ulaşıldı. Lütfen daha sonra tekrar deneyiniz." +
-                                                                '</div>' +
-                                                          '</div>'
-                                                  );
+
+                                else if (template_values_curr["app_cnt_limit"] == "true") {
+                                        msg = " Seçilen proje için maksimum başvuru sayısına ulaşıldı. Lütfen daha sonra tekrar deneyiniz.";
                                 }
+
+                                else if (template_values_curr["apply_exist"] == "true") {
+                                        msg = " Halihazırda bir proje başvurunuz bulunmaktadır.";
+                                }
+
+                                $('#title').after('<div class="ml-2 row" id="danger_message">' +
+                                                        '<div class="alert alert-danger" role="alert">' +
+                                                                '<strong>Hata! </strong>' + '<label id="danger_source">' + msg +
+                                                        '</div>' +
+                                                  '</div>'
+                                          );
+
+
+
 
                         }
 

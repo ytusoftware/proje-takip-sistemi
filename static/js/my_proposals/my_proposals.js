@@ -48,7 +48,7 @@ function pass_func(template_values_curr) {
 
                         //Surec acik mi?
                         if (template_values_curr["PROCESS_1"]) {
-                                process_str = '<button type="button" name="edit_button" class="btn btn-primary float-right">Düzenle</button>'+'<button type="button" name="delete_button" class="btn btn-danger float-right mr-3">Sil</button>';
+                                process_str = '<button type="button" name="delete_button" class="btn btn-danger float-right mr-3">Sil</button>';
                         }
 
 
@@ -64,7 +64,7 @@ function pass_func(template_values_curr) {
                                                         '</div>' +
 
                                                 '</div>' +
-                                                process_str+
+                                                '<button type="button" name="edit_button" class="btn btn-primary float-right">Düzenle</button>'+process_str+
 
                                         '</li>'
                                 );

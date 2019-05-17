@@ -67,7 +67,14 @@ function pass_func(template_values_curr) {
 
                 else if(template_values_curr["response"] == "friend_request_exist_reverse") {
                         $("#title").after('<div class="ml-2 alert alert-danger" role="alert">'+
-                                                        '<p>Seçilen öğrencinin size gönderilmiş isteği vardır veya daha önceden reddettiğiniz istek seçilen öğrenci tarafından silimedi. Lütfen öğrenci ile irtibata geçip bu isteğin silinmesini talep ediniz.</p></div>');
+                                                        '<p>Seçilen öğrencinin size gönderilmiş isteği vardır ya da daha önceden reddettiğiniz istek seçilen öğrenci tarafından silinmedi. Lütfen öğrenci ile irtibata geçip bu isteğin silinmesini talep ediniz.</p></div>');
+
+                }
+
+
+                else if(template_values_curr["response"] == "project_exist") {
+                        $("#title").after('<div class="ml-2 alert alert-danger" role="alert">'+
+                                                        '<p>Seçilen öğrencinin bağlı olduğu bir proje vardır. Projeniz yoksa ve seçilen kişiyle arkadaş olmak istiyorsanız, size arkadaşlık isteği yollamasını talep edebilirsiniz.</p></div>');
 
                 }
 

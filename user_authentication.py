@@ -68,13 +68,14 @@ class Appointment:
 
 
 class Student():
-    def __init__(self, student_no, password, name, sname):
+    def __init__(self, student_no, password, name, sname,continuation):
         #Class icerisinde sadece degerleri dinamik olarak degismeyen degerlerin (ogrenci no, isim & soyisim gibi) uye alanlari bulunmaktadir.
         #Sebebi asagidaki notta aciklanmistir.
         self.student_no = student_no
         self.password = password
         self.name = name
         self.sname = sname
+        self.continuation = continuation
 
 
     #NOT: project, grade gibi alanlar icin class icerisinde uye alani kullanilmamistir. Cunku web tabanli uygulamada
@@ -136,15 +137,32 @@ class Student():
         cursor = connection.cursor()
 
         try:
-            #Projeyi öğrenci önerdiyse Proje tablosundaki öğrenci önerisi de silinir
-            cursor.execute('DELETE FROM Project \
-            WHERE proposal_type=%s AND \
-            project_id IN(SELECT apply_project_id FROM Student WHERE student_no=%s) ',("student",self.student_no))
+
+            #Proje bilgisi cekiliyor
+            cursor.execute('SELECT project_id \
+            FROM Student \
+            WHERE student_no=%s',(self.student_no,))
+
+            data = cursor.fetchone()
+
+            #Proje basvurusu onaylanmamis ise
+            if not data[0]:
+                #Proje akademisyen onerisinden ve basvuru durumu pending ise basvuru sayisi guncellenir
+                cursor.execute('UPDATE Project \
+                SET app_count=app_count-1 WHERE \
+                proposal_type=%s AND project_id IN(SELECT apply_project_id FROM Student WHERE student_no=%s AND apply_project_status=%s) ',("academician",self.student_no,"pending"))
+
+                #Projeyi öğrenci önerdiyse Proje tablosundaki öğrenci önerisi de silinir
+                cursor.execute('DELETE FROM Project \
+                WHERE proposal_type=%s AND \
+                project_id IN(SELECT apply_project_id FROM Student WHERE student_no=%s) ',("student",self.student_no))
 
 
-            cursor.execute('UPDATE Student \
-            SET apply_project_id=%s, apply_project_status=%s \
-            WHERE student_no=%s OR friend_student_no=%s',(None, None, self.student_no, self.student_no))
+                cursor.execute('UPDATE Student \
+                SET apply_project_id=%s, apply_project_status=%s \
+                WHERE student_no=%s OR friend_student_no=%s',(None, None, self.student_no, self.student_no))
+
+
 
 
         finally:
@@ -175,9 +193,8 @@ class Student():
 
         try:
             cursor.execute(
-            'SELECT Academician.username FROM Student,Project,Academician WHERE student_no=%s AND \
-            Student.project_id=Project.project_id AND \
-            Project.username=Academician.username', (self.student_no,))
+            'SELECT Project.username FROM Student,Project WHERE student_no=%s AND \
+            (Student.project_id=Project.project_id OR Student.apply_project_id=Project.project_id) ', (self.student_no,))
 
             data = cursor.fetchone()
 
@@ -297,15 +314,7 @@ class Student():
             status = "pending"
             cursor.execute('UPDATE Student \
             SET apply_project_id=%s, apply_project_status=%s \
-            WHERE (student_no=%s OR friend_student_no=%s) AND EXISTS(SELECT 1 \
-            FROM Project WHERE project_id=%s AND app_count < capacity-fullness)',(project_id, status, self.student_no, self.student_no,project_id))
-
-            #Başvuru sayisi bilgisa guncelleniyor
-            if cursor.rowcount >= 1:
-                cursor.execute('UPDATE Project \
-                SET app_count=app_count+1 \
-                WHERE project_id=%s',(project_id,))
-                return False
+            WHERE (student_no=%s OR friend_student_no=%s)',(project_id, status, self.student_no, self.student_no))
 
             return True
 
@@ -329,21 +338,26 @@ class Student():
 
         try:
             status = "pending"
-            #Öğrencinin daha önceden yaptığı başvuru varsa siliniyor
-            cursor.execute('DELETE FROM Project\
-            WHERE project_id IN (SELECT apply_project_id \
-            FROM Student WHERE student_no=%s)', (self.student_no,) )
+            #Akademisyen gercek mi?
+            cursor.execute('SELECT username, name\
+            FROM Academician WHERE username=%s', (academician_username,) )
 
-            #Project tablosuna öğrenci önerisi ekleniyor
-            cursor.execute('INSERT INTO Project(project_name, project_type, username, proposal_type)\
-            VALUES (%s,%s,%s,%s) RETURNING project_id;', (project_name, project_type, academician_username, "student") )
+            academician = cursor.fetchone()
 
-            project_id = cursor.fetchone()[0]
+            if academician:
 
-            #Öğrenci tablosunda önerilen projenin idsi alınıp set ediliyor
-            cursor.execute('UPDATE Student \
-            SET apply_project_id=%s, apply_project_status=%s \
-            WHERE student_no=%s OR friend_student_no=%s',(project_id, status, self.student_no, self.student_no))
+                #Project tablosuna öğrenci önerisi ekleniyor
+                cursor.execute('INSERT INTO Project(project_name, project_type, username, proposal_type)\
+                VALUES (%s,%s,%s,%s) RETURNING project_id;', (project_name, project_type, academician_username, "student") )
+
+                project_id = cursor.fetchone()[0]
+
+                #Öğrenci tablosunda önerilen projenin idsi alınıp set ediliyor
+                cursor.execute('UPDATE Student \
+                SET apply_project_id=%s, apply_project_status=%s \
+                WHERE student_no=%s OR friend_student_no=%s',(project_id, status, self.student_no, self.student_no))
+
+
 
 
         finally:
@@ -415,6 +429,8 @@ class Student():
                 return "friend_request_exist" #Ayni hatayi veriyor. Mesajin ne oldugu onemli degil sonucta kurnazlik yaptilar
 
 
+            if data[7]:
+                return "project_exist"
 
 
             #Eklenen kisi ekleyen kisiye onceden istek atmis mi?
@@ -553,14 +569,23 @@ class Student():
             WHERE receiver_student_no=%s',("rejected",sender_student_no))
 
 
+
+            #Kisinin proje bilgileri cekiliyor
+            cursor.execute('SELECT project_id,apply_project_id,apply_project_status \
+            FROM Student \
+            WHERE student_no=%s',(self.student_no,))
+
+            data_you = cursor.fetchone()
+
+
             #Son olarak arkadaslik bagi kuruluyor
             cursor.execute('UPDATE Student \
             SET friend_student_no=%s \
             WHERE student_no=%s',(sender_student_no,self.student_no))
 
             cursor.execute('UPDATE Student \
-            SET friend_student_no=%s \
-            WHERE student_no=%s',(self.student_no,sender_student_no))
+            SET friend_student_no=%s,project_id=%s,apply_project_id=%s,apply_project_status=%s \
+            WHERE student_no=%s',(self.student_no,data_you[0],data_you[1],data_you[2],sender_student_no))
 
 
 
@@ -728,6 +753,23 @@ class Student():
 
 
 
+    #Ogrencinin projeye devam karari almasi
+    def confirm_continuation(self):
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+        cursor = connection.cursor()
+
+        try:
+            cursor.execute('UPDATE Student \
+            SET continuation=%s \
+            WHERE (student_no=%s OR friend_student_no=%s) AND apply_project_id IN(SELECT project_id \
+            FROM Project \
+            WHERE proposal_type=%s)',("true",self.student_no,self.student_no,"academician"))
+
+        finally:
+            connection.commit()
+            connection.close()
+
+
     #Bu metot objenin uye alanlarini sinif icerisinde set edip, objeyi return etmektedir.
     @classmethod
     def find_by_student_no(cls, student_no):
@@ -735,11 +777,11 @@ class Student():
         cursor = connection.cursor()
 
         try:
-            cursor.execute('SELECT student_no,password,name,sname FROM Student WHERE student_no=%s', (student_no,))
+            cursor.execute('SELECT student_no,password,name,sname,continuation FROM Student WHERE student_no=%s', (student_no,))
             data = cursor.fetchone()
             if data:
                 #cls mevcut sinifin contructor ini temsil etmektedir
-                instance = cls(data[0], data[1], data[2], data[3])
+                instance = cls(data[0], data[1], data[2], data[3], data[4])
                 return instance
         finally:
             connection.close()
@@ -949,10 +991,10 @@ class Academician():
 
             #Proje set ediliyor
             cursor.execute('UPDATE Student \
-            SET project_id=%s, apply_project_status=%s \
+            SET project_id=%s, apply_project_status=%s,continuation=%s \
             WHERE (student_no=%s OR friend_student_no=%s) AND apply_project_id IN (SELECT project_id \
             FROM Project,Academician \
-            WHERE Project.username=Academician.username AND Project.username=%s)',(set_project_id, "confirmed", student_no, student_no, self.username))
+            WHERE Project.username=Academician.username AND Project.username=%s)',(set_project_id, "confirmed",None ,student_no, student_no, self.username))
 
 
             return True
@@ -973,10 +1015,10 @@ class Academician():
 
             #Proje başvuru durumu guncelleniyor
             cursor.execute('UPDATE Student \
-            SET apply_project_status=%s \
+            SET apply_project_status=%s,continuation=%s \
             WHERE (student_no=%s OR friend_student_no=%s) AND apply_project_id IN (SELECT project_id \
             FROM Project,Academician \
-            WHERE Project.username=Academician.username AND Project.username=%s)',("rejected", student_no, student_no, self.username))
+            WHERE Project.username=Academician.username AND Project.username=%s)',("rejected",None ,student_no, student_no, self.username))
 
             #Basvuru sayisi guncelleniyor
             cursor.execute('UPDATE Project \
@@ -1004,7 +1046,7 @@ class Academician():
         try:
             query_offset = (page_offset-1)*10
 
-            cursor.execute('SELECT project_id, project_name, project_type, proposal_type \
+            cursor.execute('SELECT project_id, project_name, project_type, proposal_type,capacity,fullness \
             FROM Project \
             WHERE username=%s AND project_id IN (SELECT apply_project_id \
             FROM Student WHERE apply_project_status=%s) OFFSET %s LIMIT 11', (self.username, "pending", query_offset))
@@ -1025,7 +1067,7 @@ class Academician():
 
 
         try:
-            cursor.execute('SELECT student_no, name, sname, friend_student_no \
+            cursor.execute('SELECT student_no, name, sname, friend_student_no,continuation \
             FROM Student \
             WHERE apply_project_id=%s AND apply_project_status=%s', (project_id, "pending"))
 

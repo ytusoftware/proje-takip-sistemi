@@ -21,60 +21,22 @@
 {% block content %}
 
 
-<div class="container-fluid">
+<div id="top-part" class="container-fluid">
 
-        <div id="title" class="mb-5 row">
-
-                <div class="col">
-                        <h2>Proje Grup Arkadaşı</h2>
-                </div>
-
+        <div name="be_deleted" class="card mx-auto mt-4" style="width: 20rem;">
+                <img class="card-img-top" src="/static/userPhoto.png" alt="Card image cap">
+          <div class="card-body">
+                        <h5 class="card-title">Proje Ekip Arkadaşı Bilgileri</h5>
+                        <ul>
+                                <li><strong>Öğrenci No: </strong><label id="student_no"></label></li>
+                                <li><strong>Ad: </strong><label id="student_name"></label></li>
+                                <li><strong>Soyad: </strong><label id="student_sname"></label></li>
+                        </ul>
+          </div>
+          <div id="cancel_button" class="card-footer bg-transparent text-center">
+                  <button type="button" class="btn btn-primary"  data-toggle="modal" data-target="#exampleModalCenter">Arkadaşı Sil</button>
+          </div>
         </div>
-
-        <div name="be_deleted" class="row ml-3">
-                <div class="col-4">
-                        <h5><u>Öğrenci Numarası</u></h5>
-                </div>
-        </div>
-
-        <div name="be_deleted" class="row ml-5 mb-5">
-                <div class="col">
-                        <label id="student_no"></label>
-                </div>
-        </div>
-
-        <div name="be_deleted" class="row ml-3">
-                <div class="col-4">
-                        <h5><u>Ad</u></h5>
-                </div>
-        </div>
-
-        <div name="be_deleted" class="row ml-5 mb-5">
-                <div class="col">
-                        <label id="student_name"></label>
-                </div>
-        </div>
-
-        <div name="be_deleted" class="row ml-3">
-                <div class="col-4">
-                        <h5><u>Soyad</u></h5>
-                </div>
-        </div>
-
-        <div name="be_deleted" class="row ml-5 mb-5">
-                <div class="col">
-                        <label id="student_sname"></label>
-                </div>
-        </div>
-
-
-
-        <div name="be_deleted" id="cancel_button" class="row ml-3">
-                <div class="col-3">
-                        <button type="button" class="btn btn-primary"  data-toggle="modal" data-target="#exampleModalCenter">Arkadaşı Sil</button>
-                </div>
-        </div>
-
 
 
         <!-- Onay alma icin modal window -->

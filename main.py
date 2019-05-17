@@ -16,14 +16,20 @@ import zipfile
 import time
 
 
+
 #SYSTEM FLOW CONTROL
 ####################
 
-#Akademisyen proje oneri gonderme/silme/duzenleme
+#######################################################################################################################
+#ONEMLI NOT: Sadece PROCESS_2 VE PROCESS_3 paralel yurutulebilir. Diger tum surecler birbirinden ayri yurutulmelidir
+#######################################################################################################################
+
+
+#Akademisyen proje oneri gonderme sureci
 #Ogrenci arkadas ekleme sureci
 PROCESS_1 = True
 
-#Ogrenci proje basvuru yapma sureci
+#Ogrenci proje basvuru yapma/silme sureci
 PROCESS_2 = True
 
 #Akademisyen proje basvuru degerlendirme sureci
@@ -42,6 +48,12 @@ PROCESS_6 = True
 PROCESS_7 = True
 
 
+#Ogrenci devam karari sureci (Bu surec sistem sifirlanana kadar devam etmelidir, bir sonraki donem baslangicina kadar)
+PROCESS_8 = True
+
+
+
+
 app = Flask(__name__)
 
 
@@ -56,7 +68,6 @@ Session(app)
 #UPLOAD DOSYA AYARLARI
 UPLOAD_FOLDER = os.path.abspath(os.path.join(app.root_path, 'uploads'))
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 
 
 
@@ -452,12 +463,21 @@ def showMyGrade():
                 "PROCESS_4":PROCESS_4,
                 "PROCESS_5":PROCESS_5,
                 "PROCESS_6":PROCESS_6,
-                "PROCESS_7":PROCESS_7
+                "PROCESS_7":PROCESS_7,
+                "PROCESS_8":PROCESS_8
             }
             kisiselBilgiler={
                 "Ad" : user.name,"Soyad":user.sname,"Notu":myGrade1
             }
-            return render_template("myGradePage.html",infoAboutUser=kisiselBilgiler,template_values=(template_values))
+
+            data_project = user.get_applied_project()
+            template_values_curr = {
+                "PROCESS_8":PROCESS_8,
+                "std_no":user.student_no,
+                "data_project":data_project,
+                "confirm_status":std.continuation
+            }
+            return render_template("myGradePage.html",infoAboutUser=kisiselBilgiler,template_values=(template_values),template_values_curr=json.dumps(template_values_curr))
         return redirect(url_for("greeting"))
     #Giris yapilmadiysa giris sayfasina yonlendirilir.
     return redirect(url_for("login_handle"))
@@ -532,7 +552,7 @@ def admin_index_handle():
                     return render_template("admin_index.html",template_values=json.dumps(template_values))
 
 
-
+                admin.generated_password = admin.generate_random_password()
 
                 #SMTP server giris
                 server = smtplib.SMTP("smtp.gmail.com:587")
@@ -1048,11 +1068,6 @@ def academician_delete_proposal_handler():
 def academician_edit_proposal_handler():
     if request.method == "POST":
 
-        #Surec acik degil ise
-        if not PROCESS_1:
-            return redirect(url_for("greeting"))
-
-
         #Giris yapildi mi?
         if session.get("logged_in"):
 
@@ -1342,6 +1357,7 @@ def apply_project_handler():
             success = request.args.get("success")
             capacity_full = request.args.get("capacity_full")
             app_cnt_limit = request.args.get("app_cnt_limit")
+            apply_exist = request.args.get("apply_exist")
 
             success = str(success)
 
@@ -1358,7 +1374,8 @@ def apply_project_handler():
                 "academicians":academicians,
                 "success":success,
                 "capacity_full":capacity_full,
-                "app_cnt_limit":app_cnt_limit
+                "app_cnt_limit":app_cnt_limit,
+                "apply_exist":apply_exist
             }
 
 
@@ -1403,9 +1420,11 @@ def apply_project_handler():
             proposal_type = request.form['proposal_type_select']
             user = session["user"]
 
+            if user.get_applied_project():
+                return redirect("/project/apply_project?success=false&apply_exist=true")
+
 
             try:
-                app_cnt_limit = None
                 #Proje akademisyen önerisinden başvuruldu
                 if proposal_type == "academician_proposal":
 
@@ -1418,10 +1437,8 @@ def apply_project_handler():
                         return redirect("/project/apply_project?success=false&capacity_full=true")
 
 
-                    app_cnt_limit = user.apply_academician_project(project_id)
+                    user.apply_academician_project(project_id)
 
-                    if app_cnt_limit:
-                        return redirect("/project/apply_project?success=false&app_cnt_limit=true")
 
                 elif proposal_type == "student_proposal":
 
@@ -1473,7 +1490,8 @@ def project_apply_status_handler():
 
 
             template_values_curr = {
-                "project_info":project_info
+                "project_info":project_info,
+                "PROCESS_2":PROCESS_2
             }
 
 
@@ -1509,6 +1527,10 @@ def project_apply_status_handler():
 @app.route('/project/delete_project_apply',methods=["GET"])
 def project_apply_cancel_handler():
     if request.method == "GET":
+
+        #Surec acik mi?
+        if not PROCESS_2:
+            return redirect(url_for("greeting"))
 
 
         #Giris yapildi mi?
@@ -1736,10 +1758,12 @@ def confirm_project_application_handler():
             academician = session["user"]
 
             success = academician.set_student_project(student_no, project_id)
+            response = {
+            "success":success
+            }
 
-            response = json.dumps(success)
 
-            return response
+            return json.dumps(response)
 
 
 
@@ -2118,7 +2142,9 @@ def my_friend_handler():
             student_info = user.get_friend()
 
             template_values_curr = {
-                "student_info":student_info
+                "student_info":student_info,
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_7":PROCESS_7
             }
 
             template_values_index = {
@@ -2150,6 +2176,10 @@ def my_friend_handler():
 @app.route('/project/delete_friend',methods=["GET"])
 def delete_friend_request_handler():
     if request.method == "GET":
+
+        #Surec acik mi?
+        if not (PROCESS_1 or PROCESS_7):
+            return redirect(url_for("greeting"))
 
 
         #Giris yapildi mi?
@@ -2745,7 +2775,7 @@ def form2_council_decision_handler():
 
 #Request Handler Bilgileri
 #-----------*-------------
-#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Proje Başvurusu Yap
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Öğrenci Raporu İndir
 #Sorumlu kişi: Çetin Tekin
 @app.route('/project/get_student_report',methods=["GET"])
 def get_student_report_handler():
@@ -2791,6 +2821,101 @@ def get_student_report_handler():
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
         return redirect(url_for("login_handle"))
 
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Admin Paneli/Sistemi Sıfırla
+#Sorumlu kişi: Çetin Tekin
+@app.route('/admin/system_reset',methods=["GET"])
+def system_reset_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("admin_logged_in"):
+            return render_template("admin_system_reset.html")
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("admin_login_handle"))
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Admin Paneli/Sistemi Sıfırla ajax call
+#Sorumlu kişi: Çetin Tekin
+@app.route('/system_reset',methods=["GET"])
+def system_reset_handler_2():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("admin_logged_in"):
+
+            response = {
+            "success":False
+            }
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+            try:
+                #Base proje bilgileri guncelleniyor
+                cursor.execute('UPDATE Project \
+                SET fullness=%s \
+                WHERE capacity IS NOT NULL', (0,))
+
+                #Base projeler disinda tum projeler siliniyor
+                cursor.execute('DELETE FROM Project \
+                WHERE capacity IS NULL;')
+
+                #Ogrenci tablosunda devam karari alanlar icin
+                cursor.execute('UPDATE Student \
+                SET project_id=%s,apply_project_status=%s,grade=%s \
+                WHERE continuation IS NOT NULL', (None,"pending",None))
+
+                #Ogrenci tablosunda devam karari almayanlar icin
+                cursor.execute('UPDATE Student \
+                SET project_id=%s,apply_project_status=%s,apply_project_id=%s,grade=%s \
+                WHERE continuation IS NULL', (None,None,None,None))
+
+                response["success"] = True
+
+
+            finally:
+                connection.commit()
+                connection.close()
+                return json.dumps(response)
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("admin_login_handle"))
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje/Devam Karari
+#Sorumlu kişi: Çetin Tekin
+@app.route('/grade/confirm_continuation',methods=["GET"])
+def confirm_continuation_handler():
+    if request.method == "GET":
+
+        #Surec acik mi?
+        if not PROCESS_8:
+            return redirect(url_for("greeting"))
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+            user = session["user"]
+            user.confirm_continuation()
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
 
 if __name__ == '__main__':
    app.run(debug = True)

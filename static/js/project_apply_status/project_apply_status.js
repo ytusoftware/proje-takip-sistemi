@@ -18,11 +18,17 @@ function pass_func(template_values_curr) {
                         switch (template_values_curr["project_info"][4]) {
                                 case "pending":
                                         $("#apply_status").append('<p class="p-2 rounded bg-warning text-white text-center">Onay Bekliyor</p>');
+                                        if (!template_values_curr["PROCESS_2"]) {
+                                                $("#cancel_button").remove();
+                                        }
                                         break;
 
                                 case "rejected":
                                         $("#apply_status").append('<p class="p-2 rounded bg-danger text-white text-center">Reddedildi</p>');
                                         $("#cancel_button div button").text("Başvuruyu Sil");
+                                        if (!template_values_curr["PROCESS_2"]) {
+                                                $("#cancel_button").remove();
+                                        }
                                         $("#modal_body").text("Proje başvurusunu silmek istediğinize emin misiniz?");
                                         break;
 
