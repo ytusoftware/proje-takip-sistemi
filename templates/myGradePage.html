@@ -3,30 +3,63 @@
 <!-- external js ve css dosyalari include etmek icin -->
 {% block includes %}
 
+<script type="text/javascript" src="/static/js/gradePage/gradePage.js"></script>
+
+<!-- NOT: Bu js kodu burada yazilmak zorunda. External js dosyasina python degiskenlerini (jinja2 aracaligiyla gelen) aktarmak icin -->
+<script type="text/javascript">
+        var template_values_curr = JSON.parse('{{ template_values_curr|safe }}');
+        pass_func(template_values_curr);
+</script>
+
 {% endblock %}
 
 
 <!-- Ortadaki degisen alan icin HTML kodlar -->
 {% block content %}
 
-<div class="container-fluid">
-	<div class="card mx-auto mt-4" style="width: 20rem;">
-		<img class="card-img-top" src="/static/userPhoto.png" alt="Card image cap">
-	  <div class="card-body">
-			<h5 class="card-title">Kullanıcı Bilgileri</h5>
-			<ul>			
-			  {% for key, value in infoAboutUser.items() %}
-				<li>
-                    {% if value!=-1 %}
-				        <strong>{{ key }}:</strong> {{ value }}
-                    {% else %}
-                        <strong>{{ key }}:</strong> Girilmedi
-                    {% endif %}
-                </li>
-			 {% endfor %}
-			</ul>
-	  </div>
-	</div>
+<div id="top-part" class="container-fluid">
+        <div class="card mx-auto mt-4" style="width: 20rem;">
+                <img class="card-img-top" src="/static/userPhoto.png" alt="Card image cap">
+                <div class="card-body">
+                        <h5 class="card-title">Kullanıcı Bilgileri</h5>
+                        <ul>
+                                {% for key, value in infoAboutUser.items() %}
+                                <li>
+                                        {% if value!=-1 %}
+                                        <strong>{{ key }}:</strong> {{ value }}
+                                        {% else %}
+                                        <strong>{{ key }}:</strong> Girilmedi
+                                        {% endif %}
+                                </li>
+                                {% endfor %}
+                        </ul>
+                </div>
+                <div id="devam_karari" class="card-footer text-center">
+                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#exampleModalCenter">Projeye Devam Etmek İstiyorum</button>
+                </div>
+        </div>
+
+
+        <!-- Onay alma icin modal window -->
+        <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                                <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLongTitle">Devam Onayı</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                        </button>
+                                </div>
+                                <div id="modal_body" class="modal-body">
+                                        Projeye gelecek dönem devam etmek istediğinize emin misiniz?
+                                </div>
+                                <div class="modal-footer">
+                                        <button id="cancel_onay_button" type="button" class="btn btn-primary" data-dismiss="modal">Evet</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+                                </div>
+                        </div>
+                </div>
+        </div>
 </div>
 
 {% endblock %}

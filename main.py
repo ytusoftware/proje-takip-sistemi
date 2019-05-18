@@ -16,14 +16,20 @@ import zipfile
 import time
 
 
+
 #SYSTEM FLOW CONTROL
 ####################
 
-#Akademisyen proje oneri gonderme/silme/duzenleme
+#######################################################################################################################
+#ONEMLI NOT: Sadece PROCESS_2 VE PROCESS_3 paralel yurutulebilir. Diger tum surecler birbirinden ayri yurutulmelidir
+#######################################################################################################################
+
+
+#Akademisyen proje oneri gonderme sureci
 #Ogrenci arkadas ekleme sureci
 PROCESS_1 = True
 
-#Ogrenci proje basvuru yapma sureci
+#Ogrenci proje basvuru yapma/silme sureci
 PROCESS_2 = True
 
 #Akademisyen proje basvuru degerlendirme sureci
@@ -38,10 +44,14 @@ PROCESS_5 = True
 #Form-2 kurul onayi sureci
 PROCESS_6 = True
 
-#MILESTONE!!! --> Form-2 si onaylanmayan ogrencileri sistem tarafindan inactive yapilir
-
 #Rapor gonderme sureci
 PROCESS_7 = True
+
+
+#Ogrenci devam karari sureci (Bu surec sistem sifirlanana kadar devam etmelidir, bir sonraki donem baslangicina kadar)
+PROCESS_8 = True
+
+
 
 
 app = Flask(__name__)
@@ -58,7 +68,6 @@ Session(app)
 #UPLOAD DOSYA AYARLARI
 UPLOAD_FOLDER = os.path.abspath(os.path.join(app.root_path, 'uploads'))
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 
 
 
@@ -215,12 +224,11 @@ def saveNotice():
             try:
 
                 cursor.execute("INSERT INTO notice(title,content,date,username) VALUES(%s,%s,%s,%s)",(title,cont,noticeTime,akademisyenAdi))
-                connection.commit()
-                
             finally:
-                
+                connection.commit()
                 connection.close()
-                
+
+
     return redirect(url_for("createNotice"))
 
 #Akademisyenin kendi yayinladigi duyurulari gormesi
@@ -284,7 +292,7 @@ def updateNotice():
             else:
                 content = (request.args.get("msg"))
                 id = int(request.args.get("id"))
-                
+
                 current_date_time = datetime.datetime.today()
                 noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
 
@@ -299,8 +307,8 @@ def updateNotice():
                 finally:
                     connection.close()
 
-                return redirect(url_for("showMyNotices"))
 
+                return redirect(url_for("showMyNotices"))
 
         return redirect(url_for("login_handle"))
     return redirect(url_for("showMyNotices"))
@@ -312,7 +320,7 @@ def createGeneralNotice():
     if session.get("admin_logged_in"):
         return render_template("createGeneralNoticePage.html")
 
-    
+
     return redirect(url_for("admin_login_handle"))
 
 #Admin tarafindan olusturulan duyurunun veritabanına kaydı
@@ -355,7 +363,7 @@ def showGeneralNoticestoUsers():
             "PROCESS_6":PROCESS_6,
             "PROCESS_7":PROCESS_7
         }
-        
+
         userName = 'Admin'
 
         connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
@@ -383,10 +391,10 @@ def showGeneralNoticestoUsers():
                 "disable_next_page":disable_next_page,
                 "init_page_num":pageno
             }
-            
+
         finally:
             connection.close()
-    
+
         return render_template("GeneralNoticePage.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
 
     return redirect(url_for("login_handle"))
@@ -397,9 +405,9 @@ def showGeneralNoticestoUsers():
 @app.route('/Notices/MyGeneralNotices')
 def showMyGeneralNotices():
     if session.get("admin_logged_in"):
-        
+
         userName = 'Admin'
-        
+
         connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
         cursor = connection.cursor()
@@ -426,7 +434,7 @@ def showMyGeneralNotices():
                 "init_page_num":pageno
             }
         finally:
-            
+
             connection.close()
 
         return render_template("myGeneralNoticePage.html",template_values_curr=json.dumps(template_values_curr))
@@ -441,16 +449,16 @@ def updateGeneralNotice():
 
             content = (request.args.get("msg"))
             id = int(request.args.get("id"))
-                
+
             current_date_time = datetime.datetime.today()
             noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
-                
+
             connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
 
             cursor = connection.cursor()
 
             try:
-                    
+
                 cursor.execute("UPDATE notice SET content=%s,date=%s where id="+str(id),(content,noticeTime,))
                 connection.commit()
 
@@ -461,7 +469,7 @@ def updateGeneralNotice():
 
         return redirect(url_for("admin_login_handle"))
     return redirect(url_for("showMyGeneralNotices"))
-     
+
 
 #Akademisyenden proje alanlarin listesi
 @app.route('/Grades/NotGirisSayfasi',methods=["GET"])
@@ -489,7 +497,7 @@ def ShowMyStudents():
                 cursor = connection.cursor()
 
                 try:
-                
+
                     cursor.execute(
                     'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type FROM Student,Project,Academician WHERE Academician.username=%s AND \
                     Academician.username=Project.username AND \
@@ -569,7 +577,7 @@ def ShowMyStudentsGrade():
                 cursor = connection.cursor()
 
                 try:
-                
+
                     cursor.execute(
                     'SELECT student_no,Student.name,Student.sname,Project.project_name,Project.project_type,Student.grade FROM Student,Project,Academician WHERE Academician.username=%s AND \
                     Academician.username=Project.username AND \
@@ -593,11 +601,11 @@ def ShowMyStudentsGrade():
                         "disable_next_page":disable_next_page,
                         "init_page_num":pageno
                     }
-
+                    return render_template("gradePage2.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
                 finally:
                     connection.close()
 
-                return render_template("gradePage2.html",template_values=template_values,template_values_curr=json.dumps(template_values_curr))
+
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
         return redirect(url_for("login_handle"))
 
@@ -620,12 +628,21 @@ def showMyGrade():
                 "PROCESS_4":PROCESS_4,
                 "PROCESS_5":PROCESS_5,
                 "PROCESS_6":PROCESS_6,
-                "PROCESS_7":PROCESS_7
+                "PROCESS_7":PROCESS_7,
+                "PROCESS_8":PROCESS_8
             }
             kisiselBilgiler={
                 "Ad" : user.name,"Soyad":user.sname,"Notu":myGrade1
             }
-            return render_template("myGradePage.html",infoAboutUser=kisiselBilgiler,template_values=(template_values))
+
+            data_project = user.get_applied_project()
+            template_values_curr = {
+                "PROCESS_8":PROCESS_8,
+                "std_no":user.student_no,
+                "data_project":data_project,
+                "confirm_status":std.continuation
+            }
+            return render_template("myGradePage.html",infoAboutUser=kisiselBilgiler,template_values=(template_values),template_values_curr=json.dumps(template_values_curr))
         return redirect(url_for("greeting"))
     #Giris yapilmadiysa giris sayfasina yonlendirilir.
     return redirect(url_for("login_handle"))
@@ -682,6 +699,8 @@ def admin_index_handle():
             email = request.form["email"]
             user_type = request.form['tipsec']
 
+            error_source = "mail"
+
 
             try:
 
@@ -698,11 +717,7 @@ def admin_index_handle():
                     return render_template("admin_index.html",template_values=json.dumps(template_values))
 
 
-
-                #Veri tabanina yazma islemi
-                admin.write_db(user_type, student_no_username, name, sname)
-
-
+                admin.generated_password = admin.generate_random_password()
 
                 #SMTP server giris
                 server = smtplib.SMTP("smtp.gmail.com:587")
@@ -718,6 +733,12 @@ def admin_index_handle():
                 server.quit()
 
 
+                error_source = "database"
+
+                #Veri tabanina yazma islemi
+                admin.write_db(user_type, student_no_username, name, sname)
+
+
                 template_values = {
                 'message':"success"
                 }
@@ -727,7 +748,13 @@ def admin_index_handle():
 
             except Exception as e:
                 student_no_username = request.form["student_no_username"]
-                error_message = "Hatanin sebebi " + student_no_username + " kullanici adli/ogrenci nolu kullanicinin veri tabaninda bulunmasi olabilir."
+
+                if error_source == "mail":
+                    error_message = "Kullanıcıya şifresi mail ile gönderilemedi. Lütfen tekrar deneyiniz."
+
+                elif error_source == "database":
+                    error_message = student_no_username + " kullanici adlı/ögrenci nolu kullanici veri tabanında kayıtlıdır!"
+
 
 
                 template_values={
@@ -822,7 +849,7 @@ def project_academician_proposals_handler():
             query_offset = (page_offset-1)*10
 
             try:
-                cursor.execute('SELECT project_id,project_name,project_type,username,proposal_type FROM Project WHERE proposal_type=%s OFFSET %s LIMIT 11',("academician",query_offset))
+                cursor.execute('SELECT project_id,project_name,project_type,username,proposal_type FROM Project WHERE proposal_type=%s AND capacity IS NOT NULL OFFSET %s LIMIT 11',("academician",query_offset))
 
                 #data listelerin listesi
                 data = cursor.fetchall()
@@ -1004,10 +1031,12 @@ def academician_propose_project_handler():
                 academician = session["user"]
                 project_name = request.form["project_name"]
                 project_type = request.form["tipsec"]
+                capacity = request.form["project_capacity"]
+                capacity = int(capacity)
 
 
                 #Veri tabani kaydi
-                academician.propose_project(project_name, project_type)
+                academician.propose_project(project_name, project_type, capacity)
 
 
 
@@ -1204,11 +1233,6 @@ def academician_delete_proposal_handler():
 def academician_edit_proposal_handler():
     if request.method == "POST":
 
-        #Surec acik degil ise
-        if not PROCESS_1:
-            return redirect(url_for("greeting"))
-
-
         #Giris yapildi mi?
         if session.get("logged_in"):
 
@@ -1221,10 +1245,12 @@ def academician_edit_proposal_handler():
             project_id = request.json['project_id']
             new_project_name = request.json['new_project_name']
             new_project_type = request.json['new_project_type']
+            new_project_capacity = request.json['new_project_capacity']
+            new_project_capacity = int(new_project_capacity)
 
             academician  = session["user"]
 
-            success = academician.set_project(project_id, new_project_name, new_project_type)
+            success = academician.set_project(project_id, new_project_name, new_project_type, new_project_capacity)
 
             success = {
                 "success":success
@@ -1495,6 +1521,8 @@ def apply_project_handler():
             #POST METOTTAN GELEN PARAMETRELER
             success = request.args.get("success")
             capacity_full = request.args.get("capacity_full")
+            app_cnt_limit = request.args.get("app_cnt_limit")
+            apply_exist = request.args.get("apply_exist")
 
             success = str(success)
 
@@ -1510,7 +1538,9 @@ def apply_project_handler():
                 "projects":projects,
                 "academicians":academicians,
                 "success":success,
-                "capacity_full":capacity_full
+                "capacity_full":capacity_full,
+                "app_cnt_limit":app_cnt_limit,
+                "apply_exist":apply_exist
             }
 
 
@@ -1555,6 +1585,9 @@ def apply_project_handler():
             proposal_type = request.form['proposal_type_select']
             user = session["user"]
 
+            if user.get_applied_project():
+                return redirect("/project/apply_project?success=false&apply_exist=true")
+
 
             try:
                 #Proje akademisyen önerisinden başvuruldu
@@ -1570,6 +1603,7 @@ def apply_project_handler():
 
 
                     user.apply_academician_project(project_id)
+
 
                 elif proposal_type == "student_proposal":
 
@@ -1621,7 +1655,8 @@ def project_apply_status_handler():
 
 
             template_values_curr = {
-                "project_info":project_info
+                "project_info":project_info,
+                "PROCESS_2":PROCESS_2
             }
 
 
@@ -1657,6 +1692,10 @@ def project_apply_status_handler():
 @app.route('/project/delete_project_apply',methods=["GET"])
 def project_apply_cancel_handler():
     if request.method == "GET":
+
+        #Surec acik mi?
+        if not PROCESS_2:
+            return redirect(url_for("greeting"))
 
 
         #Giris yapildi mi?
@@ -1884,10 +1923,12 @@ def confirm_project_application_handler():
             academician = session["user"]
 
             success = academician.set_student_project(student_no, project_id)
+            response = {
+            "success":success
+            }
 
-            response = json.dumps(success)
 
-            return response
+            return json.dumps(response)
 
 
 
@@ -2266,7 +2307,9 @@ def my_friend_handler():
             student_info = user.get_friend()
 
             template_values_curr = {
-                "student_info":student_info
+                "student_info":student_info,
+                "PROCESS_1":PROCESS_1,
+                "PROCESS_7":PROCESS_7
             }
 
             template_values_index = {
@@ -2298,6 +2341,10 @@ def my_friend_handler():
 @app.route('/project/delete_friend',methods=["GET"])
 def delete_friend_request_handler():
     if request.method == "GET":
+
+        #Surec acik mi?
+        if not (PROCESS_1 or PROCESS_7):
+            return redirect(url_for("greeting"))
 
 
         #Giris yapildi mi?
@@ -2893,7 +2940,7 @@ def form2_council_decision_handler():
 
 #Request Handler Bilgileri
 #-----------*-------------
-#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Proje Başvurusu Yap
+#Uygulama içerisinde ulaşmak için: Proje İşlemleri/Öğrenci Raporu İndir
 #Sorumlu kişi: Çetin Tekin
 @app.route('/project/get_student_report',methods=["GET"])
 def get_student_report_handler():
@@ -2939,6 +2986,101 @@ def get_student_report_handler():
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
         return redirect(url_for("login_handle"))
 
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Admin Paneli/Sistemi Sıfırla
+#Sorumlu kişi: Çetin Tekin
+@app.route('/admin/system_reset',methods=["GET"])
+def system_reset_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("admin_logged_in"):
+            return render_template("admin_system_reset.html")
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("admin_login_handle"))
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Admin Paneli/Sistemi Sıfırla ajax call
+#Sorumlu kişi: Çetin Tekin
+@app.route('/system_reset',methods=["GET"])
+def system_reset_handler_2():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("admin_logged_in"):
+
+            response = {
+            "success":False
+            }
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+            try:
+                #Base proje bilgileri guncelleniyor
+                cursor.execute('UPDATE Project \
+                SET fullness=%s \
+                WHERE capacity IS NOT NULL', (0,))
+
+                #Base projeler disinda tum projeler siliniyor
+                cursor.execute('DELETE FROM Project \
+                WHERE capacity IS NULL;')
+
+                #Ogrenci tablosunda devam karari alanlar icin
+                cursor.execute('UPDATE Student \
+                SET project_id=%s,apply_project_status=%s,grade=%s \
+                WHERE continuation IS NOT NULL', (None,"pending",None))
+
+                #Ogrenci tablosunda devam karari almayanlar icin
+                cursor.execute('UPDATE Student \
+                SET project_id=%s,apply_project_status=%s,apply_project_id=%s,grade=%s \
+                WHERE continuation IS NULL', (None,None,None,None))
+
+                response["success"] = True
+
+
+            finally:
+                connection.commit()
+                connection.close()
+                return json.dumps(response)
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("admin_login_handle"))
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Proje/Devam Karari
+#Sorumlu kişi: Çetin Tekin
+@app.route('/grade/confirm_continuation',methods=["GET"])
+def confirm_continuation_handler():
+    if request.method == "GET":
+
+        #Surec acik mi?
+        if not PROCESS_8:
+            return redirect(url_for("greeting"))
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            #Akademisyenler sayfaya girmeye calisirsa ana sayfaya atiliyor
+            if session["user_type"] == "academician":
+                return redirect(url_for("greeting"))
+
+            user = session["user"]
+            user.confirm_continuation()
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
 
 if __name__ == '__main__':
    app.run(debug = True)

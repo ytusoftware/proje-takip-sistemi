@@ -6,7 +6,7 @@ function pass_func(template_values_curr) {
 
                         switch (template_values_curr["status"]) {
                                 case "academician_pending":
-                                        $("#apply_status").append('<p class="p-3 rounded bg-warning text-white text-center">Akademisyen Onayı Bekliyor</p>');
+                                        $("#apply_status").append('<p class="p-3 rounded bg-warning text-center">Akademisyen Onayı Bekliyor</p>');
                                         break;
 
                                 case "academician_rejected":
@@ -14,27 +14,27 @@ function pass_func(template_values_curr) {
                                         break;
 
                                 case "council_pending":
-                                        $("#apply_status").append('<p class="p-3 rounded bg-warning text-white text-center">Kurul Onayı Bekliyor</p>');
+                                        $("#apply_status").append('<p class="p-3 rounded bg-warning text-center">Kurul Onayı Bekliyor</p>');
                                         break;
 
                                 case "council_rejected":
-                                        $("#place_pointer").after('<div id="aciklama_baslik" class="row mt-2">'+
-                                                                        '<h4 class="col">Kurul Açıklaması</h4>'+
+                                        $("#apply_status").after('<div class="card-header">'+
+                                                                        '<strong>Kurul Açıklaması</strong>'+
                                                                   ' </div>'+
-                                                                  '<div name="be_deleted" class="row">'+
-                                                                        '<textarea class="col-5 ml-3" rows="5" id="comment" readonly>'+ template_values_curr["council_decision"] +'</textarea>'+
+                                                                  '<div class="card-body">'+
+                                                                        template_values_curr["council_decision"]+
                                                                   '</div>');
 
                                         $("#apply_status").append('<p class="p-3 rounded bg-danger text-white text-center">Kurul Tarafından Reddedildi</p>');
                                         break;
 
                                 case "council_confirmed":
-                                        $("#place_pointer").after('<div id="aciklama_baslik" class="row mt-2">'+
-                                                                        '<h4 class="col">Kurul Açıklaması</h4>'+
-                                                                ' </div>'+
-                                                                '<div name="be_deleted" class="row">'+
-                                                                        '<textarea class="col-5 ml-3" rows="5" id="comment" readonly>'+ template_values_curr["council_decision"] +'</textarea>'+
-                                                                '</div>');
+                                        $("#apply_status").after('<div class="card-header">'+
+                                                                '<strong>Kurul Açıklaması</strong>'+
+                                                          ' </div>'+
+                                                          '<div class="card-body">'+
+                                                                template_values_curr["council_decision"]+
+                                                          '</div>');
 
 
                                         $("#apply_status").append('<p class="p-3 rounded bg-success text-white text-center">Kurul Tarafından Onaylandı</p>');

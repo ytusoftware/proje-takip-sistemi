@@ -24,7 +24,8 @@ class Project:
         cursor = connection.cursor()
 
         try:
-            cursor.execute('SELECT project_id, project_name, project_type, username FROM Project WHERE proposal_type=%s', ("academician",))
+            cursor.execute('SELECT project_id, project_name, project_type, username FROM Project WHERE proposal_type=%s AND \
+            capacity IS NOT NULL', ("academician",))
             data = cursor.fetchall()
             if data:
                 return data
@@ -42,13 +43,14 @@ class Project:
         cursor = connection.cursor()
 
         try:
-            cursor.execute('SELECT student_no FROM Student WHERE project_id=%s', (project_id,))
-            data = cursor.fetchall()
-            if data:
-                return True
+            cursor.execute('SELECT fullness,capacity FROM Project WHERE project_id=%s', (project_id,))
+            data = cursor.fetchone()
 
-            else:
+            if data[1]-data[0] > 0:
                 return False
+
+            return True
+
         finally:
             connection.close()
 
@@ -66,13 +68,14 @@ class Appointment:
 
 
 class Student():
-    def __init__(self, student_no, password, name, sname):
+    def __init__(self, student_no, password, name, sname,continuation):
         #Class icerisinde sadece degerleri dinamik olarak degismeyen degerlerin (ogrenci no, isim & soyisim gibi) uye alanlari bulunmaktadir.
         #Sebebi asagidaki notta aciklanmistir.
         self.student_no = student_no
         self.password = password
         self.name = name
         self.sname = sname
+        self.continuation = continuation
 
 
     #NOT: project, grade gibi alanlar icin class icerisinde uye alani kullanilmamistir. Cunku web tabanli uygulamada
@@ -101,14 +104,20 @@ class Student():
         cursor = connection.cursor()
 
         try:
-            cursor.execute('SELECT apply_project_id, apply_project_status FROM \
+            cursor.execute('SELECT apply_project_id, apply_project_status,project_id FROM \
             Student WHERE student_no=%s', (self.student_no,))
             data=cursor.fetchone()
 
             #Proje başvurusu varsa
             if data[0]:
+                which_project = data[0]
+
+                #Onaylanmis proje varsa guncel adiyla gostermek icin
+                if data[2]:
+                    which_project = data[2]
+
                 cursor.execute('SELECT project_name, proposal_type, project_type, username FROM \
-                Project WHERE project_id=%s', (data[0],))
+                Project WHERE project_id=%s', (which_project,))
 
                 data_project = cursor.fetchone()
                 data_project = data_project + (data[1],)
@@ -128,15 +137,32 @@ class Student():
         cursor = connection.cursor()
 
         try:
-            #Projeyi öğrenci önerdiyse Proje tablosundaki öğrenci önerisi de silinir
-            cursor.execute('DELETE FROM Project \
-            WHERE proposal_type=%s AND \
-            project_id IN(SELECT apply_project_id FROM Student WHERE student_no=%s) ',("student",self.student_no))
+
+            #Proje bilgisi cekiliyor
+            cursor.execute('SELECT project_id \
+            FROM Student \
+            WHERE student_no=%s',(self.student_no,))
+
+            data = cursor.fetchone()
+
+            #Proje basvurusu onaylanmamis ise
+            if not data[0]:
+                #Proje akademisyen onerisinden ve basvuru durumu pending ise basvuru sayisi guncellenir
+                cursor.execute('UPDATE Project \
+                SET app_count=app_count-1 WHERE \
+                proposal_type=%s AND project_id IN(SELECT apply_project_id FROM Student WHERE student_no=%s AND apply_project_status=%s) ',("academician",self.student_no,"pending"))
+
+                #Projeyi öğrenci önerdiyse Proje tablosundaki öğrenci önerisi de silinir
+                cursor.execute('DELETE FROM Project \
+                WHERE proposal_type=%s AND \
+                project_id IN(SELECT apply_project_id FROM Student WHERE student_no=%s) ',("student",self.student_no))
 
 
-            cursor.execute('UPDATE Student \
-            SET apply_project_id=%s, apply_project_status=%s \
-            WHERE student_no=%s OR friend_student_no=%s',(None, None, self.student_no, self.student_no))
+                cursor.execute('UPDATE Student \
+                SET apply_project_id=%s, apply_project_status=%s \
+                WHERE student_no=%s OR friend_student_no=%s',(None, None, self.student_no, self.student_no))
+
+
 
 
         finally:
@@ -167,9 +193,8 @@ class Student():
 
         try:
             cursor.execute(
-            'SELECT Academician.username FROM Student,Project,Academician WHERE student_no=%s AND \
-            Student.project_id=Project.project_id AND \
-            Project.username=Academician.username', (self.student_no,))
+            'SELECT Project.username FROM Student,Project WHERE student_no=%s AND \
+            (Student.project_id=Project.project_id OR Student.apply_project_id=Project.project_id) ', (self.student_no,))
 
             data = cursor.fetchone()
 
@@ -289,7 +314,7 @@ class Student():
             status = "pending"
             cursor.execute('UPDATE Student \
             SET apply_project_id=%s, apply_project_status=%s \
-            WHERE student_no=%s OR friend_student_no=%s',(project_id, status, self.student_no, self.student_no))
+            WHERE (student_no=%s OR friend_student_no=%s)',(project_id, status, self.student_no, self.student_no))
 
             return True
 
@@ -313,21 +338,26 @@ class Student():
 
         try:
             status = "pending"
-            #Öğrencinin daha önceden yaptığı başvuru varsa siliniyor
-            cursor.execute('DELETE FROM Project\
-            WHERE project_id IN (SELECT apply_project_id \
-            FROM Student WHERE student_no=%s)', (self.student_no,) )
+            #Akademisyen gercek mi?
+            cursor.execute('SELECT username, name\
+            FROM Academician WHERE username=%s', (academician_username,) )
 
-            #Project tablosuna öğrenci önerisi ekleniyor
-            cursor.execute('INSERT INTO Project(project_name, project_type, username, proposal_type)\
-            VALUES (%s,%s,%s,%s) RETURNING project_id;', (project_name, project_type, academician_username, "student") )
+            academician = cursor.fetchone()
 
-            project_id = cursor.fetchone()[0]
+            if academician:
 
-            #Öğrenci tablosunda önerilen projenin idsi alınıp set ediliyor
-            cursor.execute('UPDATE Student \
-            SET apply_project_id=%s, apply_project_status=%s \
-            WHERE student_no=%s OR friend_student_no=%s',(project_id, status, self.student_no, self.student_no))
+                #Project tablosuna öğrenci önerisi ekleniyor
+                cursor.execute('INSERT INTO Project(project_name, project_type, username, proposal_type)\
+                VALUES (%s,%s,%s,%s) RETURNING project_id;', (project_name, project_type, academician_username, "student") )
+
+                project_id = cursor.fetchone()[0]
+
+                #Öğrenci tablosunda önerilen projenin idsi alınıp set ediliyor
+                cursor.execute('UPDATE Student \
+                SET apply_project_id=%s, apply_project_status=%s \
+                WHERE student_no=%s OR friend_student_no=%s',(project_id, status, self.student_no, self.student_no))
+
+
 
 
         finally:
@@ -399,6 +429,8 @@ class Student():
                 return "friend_request_exist" #Ayni hatayi veriyor. Mesajin ne oldugu onemli degil sonucta kurnazlik yaptilar
 
 
+            if data[7]:
+                return "project_exist"
 
 
             #Eklenen kisi ekleyen kisiye onceden istek atmis mi?
@@ -537,14 +569,23 @@ class Student():
             WHERE receiver_student_no=%s',("rejected",sender_student_no))
 
 
+
+            #Kisinin proje bilgileri cekiliyor
+            cursor.execute('SELECT project_id,apply_project_id,apply_project_status \
+            FROM Student \
+            WHERE student_no=%s',(self.student_no,))
+
+            data_you = cursor.fetchone()
+
+
             #Son olarak arkadaslik bagi kuruluyor
             cursor.execute('UPDATE Student \
             SET friend_student_no=%s \
             WHERE student_no=%s',(sender_student_no,self.student_no))
 
             cursor.execute('UPDATE Student \
-            SET friend_student_no=%s \
-            WHERE student_no=%s',(self.student_no,sender_student_no))
+            SET friend_student_no=%s,project_id=%s,apply_project_id=%s,apply_project_status=%s \
+            WHERE student_no=%s',(self.student_no,data_you[0],data_you[1],data_you[2],sender_student_no))
 
 
 
@@ -634,26 +675,49 @@ class Student():
 
             data_2 = cursor.fetchone()
 
-            ###Onaylanmis proje varsa; kisinin arkadasina, ayni isimli fakat ogrenci onerisinden onaylanmis bir proje ayni akademisyene bagli olarak verilir
+            ###Onaylanmis proje varsa; kisiye ayni proje bir sonraki indexten verilir
             if data_2[0]:
 
                 #Mevcut proje bilgileri cekiliyor
                 cursor.execute('SELECT * FROM Project \
                             WHERE project_id=%s',(data_2[0],))
 
+                data_4 = cursor.fetchone()
+
+
+                #Basvurulan ana proje bilgileri cekiliyor
+                cursor.execute('SELECT * FROM Project \
+                            WHERE project_id=%s',(data_2[1],))
+
                 data_3 = cursor.fetchone()
 
+                next_index = 2
 
-                #Ayni isimli ogrenci onerisinden proje aciliyor
+                #Akademisyen onerisinden ise
+                if data_3[4] == "academician":
+                    next_index = data_3[15] + 1
+
+                    #Doluluk guncellemesi
+                    cursor.execute('UPDATE Project \
+                    SET fullness=fullness+1 WHERE project_id=%s',(data_2[1],))
+
+
+
+                #Bir sonraki index ile proje ismi build ediliyor
+                new_project_name = data_3[1]+"-"+str(next_index)
+
+
+                #Bir sonraki indexten proje aciliyor
                 cursor.execute('INSERT INTO Project(project_name,project_type,username,proposal_type,form2,form2_status,report1,report1_exist,report2,report2_exist,report3,report3_exist)\
                  VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING project_id;',\
-                (data_3[1],data_3[2],data_3[3],"student",psycopg2.Binary(data_3[5]),data_3[6],psycopg2.Binary(data_3[7]),data_3[8],psycopg2.Binary(data_3[9]),data_3[10],psycopg2.Binary(data_3[11]),data_3[12]))
+                (new_project_name,data_3[2],data_3[3],data_3[4],psycopg2.Binary(data_4[5]),data_4[6],psycopg2.Binary(data_4[7]),data_4[8],psycopg2.Binary(data_4[9]),data_4[10],psycopg2.Binary(data_4[11]),data_4[12]))
 
                 new_project_id = cursor.fetchone()[0]
 
                 #Yeni proje bilgisi arkadaslik istegini silen kisinin projesi olarak set ediliyor
                 cursor.execute('UPDATE Student \
-                SET project_id=%s,apply_project_id=%s,apply_project_status=%s WHERE student_no=%s',(new_project_id,new_project_id,data_2[2],self.student_no))
+                SET project_id=%s WHERE student_no=%s',(new_project_id,self.student_no))
+
 
 
 
@@ -689,6 +753,23 @@ class Student():
 
 
 
+    #Ogrencinin projeye devam karari almasi
+    def confirm_continuation(self):
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+        cursor = connection.cursor()
+
+        try:
+            cursor.execute('UPDATE Student \
+            SET continuation=%s \
+            WHERE (student_no=%s OR friend_student_no=%s) AND apply_project_id IN(SELECT project_id \
+            FROM Project \
+            WHERE proposal_type=%s)',("true",self.student_no,self.student_no,"academician"))
+
+        finally:
+            connection.commit()
+            connection.close()
+
+
     #Bu metot objenin uye alanlarini sinif icerisinde set edip, objeyi return etmektedir.
     @classmethod
     def find_by_student_no(cls, student_no):
@@ -696,11 +777,11 @@ class Student():
         cursor = connection.cursor()
 
         try:
-            cursor.execute('SELECT student_no,password,name,sname FROM Student WHERE student_no=%s', (student_no,))
+            cursor.execute('SELECT student_no,password,name,sname,continuation FROM Student WHERE student_no=%s', (student_no,))
             data = cursor.fetchone()
             if data:
                 #cls mevcut sinifin contructor ini temsil etmektedir
-                instance = cls(data[0], data[1], data[2], data[3])
+                instance = cls(data[0], data[1], data[2], data[3], data[4])
                 return instance
         finally:
             connection.close()
@@ -726,11 +807,11 @@ class Academician():
         try:
             query_offset = (page_offset-1)*10
 
-            cursor.execute('SELECT project_id,project_name,project_type \
+            cursor.execute('SELECT project_id,project_name,project_type,capacity,fullness \
             FROM Academician,Project \
             WHERE Academician.username=%s AND \
             Project.username=Academician.username AND \
-            proposal_type=%s OFFSET %s LIMIT 11', (self.username, "academician", query_offset))
+            proposal_type=%s AND capacity IS NOT NULL OFFSET %s LIMIT 11', (self.username, "academician", query_offset))
 
             data = cursor.fetchall()
 
@@ -759,14 +840,14 @@ class Academician():
 
 
     #Akademisyenin proje onerisi icin
-    def propose_project(self, project_name, project_type):
+    def propose_project(self, project_name, project_type, capacity):
         connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
 
 
         try:
-            cursor.execute('INSERT INTO Project(project_name, project_type, username, proposal_type)\
-            VALUES (%s,%s,%s,%s)', (project_name, project_type, self.username, "academician") )
+            cursor.execute('INSERT INTO Project(project_name, project_type, username, proposal_type, app_count,fullness,capacity)\
+            VALUES (%s,%s,%s,%s)', (project_name, project_type, self.username, "academician",0,0,capacity) )
 
 
         finally:
@@ -853,15 +934,15 @@ class Academician():
 
 
     #Akademisyene ait projeyi gelen parametrelerle gunceller
-    def set_project(self, project_id, new_project_name, new_project_type):
+    def set_project(self, project_id, new_project_name, new_project_type, new_project_capacity):
         connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
 
         try:
             cursor.execute('UPDATE Project \
-            SET project_name=%s, project_type=%s \
+            SET project_name=%s, project_type=%s, capacity=%s \
             WHERE project_id=%s AND \
-            username=%s ',(new_project_name, new_project_type, project_id, self.username))
+            username=%s ',(new_project_name, new_project_type, new_project_capacity, project_id, self.username))
 
             return True
 
@@ -872,26 +953,48 @@ class Academician():
 
 
     #Ogrencinin projesi set edilir (Proje başvurusu kabul edildi)
-    #Ayni projeye olan diger tum basvurular silinecek!!!
     def set_student_project(self, student_no, project_id):
         connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
         cursor = connection.cursor()
 
         try:
+            #Ana projenin bilgileri cekiliyor
+            cursor.execute('SELECT project_name,project_type,proposal_type,fullness,capacity\
+            FROM Project WHERE project_id=%s', (project_id,) )
+
+            set_project_id = project_id
+
+            data = cursor.fetchone()
+
+            #Eger basvuru yapilmis proje akademisyen onerisinden ise
+            if data[2] == "academician":
+                #Eger belirlenen max kapasiteye ulasilmis ise. Hata donduruluyor
+                if data[3] == data[4]:
+                    return False
+
+
+                #Yeni olusturulan projenin adi siradaki indexe gore belirleniyor
+                next_index = data[3]+1
+                new_project_name = data[0]+"-"+str(next_index)
+
+                #Siradaki proje indexine gore yeni proje olusturuluyor.
+                cursor.execute('INSERT INTO Project(project_name, project_type, username, proposal_type)\
+                VALUES (%s,%s,%s,%s) RETURNING project_id;', (new_project_name, data[1], self.username, data[2]) )
+
+                set_project_id = cursor.fetchone()[0]
+
+                #Proje doluluk ve basvuru sayi bilgileri guncelleniyor
+                cursor.execute('UPDATE Project \
+                SET fullness=fullness+1, app_count=app_count-1 \
+                WHERE project_id=%s',(project_id,))
+
+
             #Proje set ediliyor
             cursor.execute('UPDATE Student \
-            SET project_id=%s, apply_project_status=%s \
+            SET project_id=%s, apply_project_status=%s,continuation=%s \
             WHERE (student_no=%s OR friend_student_no=%s) AND apply_project_id IN (SELECT project_id \
             FROM Project,Academician \
-            WHERE Project.username=Academician.username AND Project.username=%s)',(project_id, "confirmed", student_no, student_no, self.username))
-
-
-            #Diger tum basvurular reddediliyor.
-            cursor.execute('UPDATE Student \
-            SET apply_project_status=%s \
-            WHERE apply_project_status=%s AND apply_project_id IN (SELECT project_id \
-            FROM Project,Academician \
-            WHERE Project.username=Academician.username AND Project.username=%s)',("rejected", "pending", self.username))
+            WHERE Project.username=Academician.username AND Project.username=%s)',(set_project_id, "confirmed",None ,student_no, student_no, self.username))
 
 
             return True
@@ -912,12 +1015,17 @@ class Academician():
 
             #Proje başvuru durumu guncelleniyor
             cursor.execute('UPDATE Student \
-            SET apply_project_status=%s \
+            SET apply_project_status=%s,continuation=%s \
             WHERE (student_no=%s OR friend_student_no=%s) AND apply_project_id IN (SELECT project_id \
             FROM Project,Academician \
-            WHERE Project.username=Academician.username AND Project.username=%s)',("rejected", student_no, student_no, self.username))
+            WHERE Project.username=Academician.username AND Project.username=%s)',("rejected",None ,student_no, student_no, self.username))
 
-            #Öğrencinin proje başvuru durumu guncelleniyor
+            #Basvuru sayisi guncelleniyor
+            cursor.execute('UPDATE Project \
+            SET app_count=app_count-1 \
+            WHERE  project_id IN (SELECT apply_project_id \
+            FROM Student \
+            WHERE student_no=%s)',(student_no,))
 
 
             return True
@@ -938,7 +1046,7 @@ class Academician():
         try:
             query_offset = (page_offset-1)*10
 
-            cursor.execute('SELECT project_id, project_name, project_type, proposal_type \
+            cursor.execute('SELECT project_id, project_name, project_type, proposal_type,capacity,fullness \
             FROM Project \
             WHERE username=%s AND project_id IN (SELECT apply_project_id \
             FROM Student WHERE apply_project_status=%s) OFFSET %s LIMIT 11', (self.username, "pending", query_offset))
@@ -959,7 +1067,7 @@ class Academician():
 
 
         try:
-            cursor.execute('SELECT student_no, name, sname, friend_student_no \
+            cursor.execute('SELECT student_no, name, sname, friend_student_no,continuation \
             FROM Student \
             WHERE apply_project_id=%s AND apply_project_status=%s', (project_id, "pending"))
 

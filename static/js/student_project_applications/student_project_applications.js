@@ -53,11 +53,12 @@ function pass_func(template_values_curr) {
 
                                 else {
                                         name_html = '<label>' + project[1] + '</label>';
+                                        name_html += '<strong>  (Kapasite: </strong>'+'<strong id="cap_edit">'+project[4]+'</strong>'+'<strong>, Doluluk: '+project[5]+')'+'</strong>';
 
                                 }
 
                                 $("#projects").append(
-                                        '<li class="list-group-item">' +
+                                        '<li class="list-group-item" id='+project[0]+'>' +
                                                 '<input type="hidden" name="project_id" value='+project[0]+'>' +
                                                 name_html +
                                                 '<div class="container-fluid">' +
@@ -144,15 +145,25 @@ function pass_func(template_values_curr) {
 
                                         var student_info_field = '';
                                         var student_no;
+                                        var con_check;
                                         //Gruptaki öğrenci/öğrenciler basılıyor
                                         group.forEach(function(student, index) {
-
+                                                con_check = student[4];
                                                 student_info_field += '<p>'+student[0]+' - '+ student[1] + ' ' +student[2] +'</p>';
                                                 student_no = student[0];
                                         });
 
+                                        var con_indicator = "";
+                                        //Devam projesi
+                                        if (con_check === "true") {
+
+                                                con_indicator = "<strong>(Devam Projesi)</strong>";
+
+                                        }
+
                                         $("#project_application_students").append('<li class="list-group-item">'+
                                                 '<input type="hidden" name="student_no" value='+student_no+'>'+
+                                                con_indicator+
                                                 student_info_field+
                                                 '<button type="button" name="reject_button" class="btn btn-danger float-right">Reddet</button>'+
                                                 '<button type="button" name="confirm_button" class="btn btn-success float-right mr-3">Onayla</button>'+
@@ -190,18 +201,24 @@ function pass_func(template_values_curr) {
                         parent_li = $(this).parent();
                         student_no = parent_li.find("input").prop("value");
                         $.get("/project/confirm_project_application?student_no="+student_no+"&project_id="+project_id, function(data, status){
-                                parent_li.find("button").hide();
-                                parent_li.append('<div class="alert alert-success" role="alert">'+
-                                        'Proje başvurusu onaylandı!'+
-                                                '</div>');
 
-                                parent_ul = parent_li.parent();
-                                parent_ul.find("li").each(function(){
-                                        if ($(this).find("input").val() != student_no) {
-                                                $(this).hide();
+                                var data_var = JSON.parse(data);
+                                if (data_var["success"]) {
+                                        parent_li.hide()
 
-                                        }
-                                });
+                                }
+                                else {
+                                        $("#search-box-parent-2").after('<div class="alert alert-danger alert-dismissible fade show" role="alert">'+
+                                                'Projenin kapasitesi doldu! Proje kapasitesi <a href="/project/my_proposals?page=1">Önerilen Projelerim </a> sayfasından güncellenebilir.'+
+                                                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'+
+                                                                '<span aria-hidden="true">&times;</span>'+
+                                                        '</button>'+
+                                                        '</div>');
+
+
+
+                                }
+
                         });
 
                 });

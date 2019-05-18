@@ -34,7 +34,6 @@ class Admin:
 
         try:
 
-            self.generated_password = self.generate_random_password()
             password_hash = generate_password_hash(self.generated_password)
 
             if user_type == "student":
