@@ -14,7 +14,7 @@ from io import BytesIO
 import datetime
 import zipfile
 import time
-import process
+from process import * 
 
 
 app = Flask(__name__)
