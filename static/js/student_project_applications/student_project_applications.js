@@ -203,11 +203,12 @@ function pass_func(template_values_curr) {
                         $.get("/project/confirm_project_application?student_no="+student_no+"&project_id="+project_id, function(data, status){
 
                                 var data_var = JSON.parse(data);
-                                if (data_var["success"]) {
+                                console.log(data_var["response"]);
+                                if (data_var["response"] == "no_problem") {
                                         parent_li.hide()
 
                                 }
-                                else {
+                                else if (data_var["response"] == "max_capacity") {
                                         $("#search-box-parent-2").after('<div class="alert alert-danger alert-dismissible fade show" role="alert">'+
                                                 'Projenin kapasitesi doldu! Proje kapasitesi <a href="/project/my_proposals?page=1">Önerilen Projelerim </a> sayfasından güncellenebilir.'+
                                                         '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'+
@@ -215,7 +216,15 @@ function pass_func(template_values_curr) {
                                                         '</button>'+
                                                         '</div>');
 
+                                }
 
+                                else if (data_var["response"] == "apply_canceled") {
+                                        $("#search-box-parent-2").after('<div class="alert alert-danger alert-dismissible fade show" role="alert">'+
+                                                'Hata! Öğrenci, proje başvurusunu iptal etti!'+
+                                                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'+
+                                                                '<span aria-hidden="true">&times;</span>'+
+                                                        '</button>'+
+                                                        '</div>');
 
                                 }
 

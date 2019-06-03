@@ -14,7 +14,7 @@ from io import BytesIO
 import datetime
 import zipfile
 import time
-from process import * 
+from process import *
 
 
 app = Flask(__name__)
@@ -1885,9 +1885,10 @@ def confirm_project_application_handler():
 
             academician = session["user"]
 
-            success = academician.set_student_project(student_no, project_id)
+            response_func = academician.set_student_project(student_no, project_id)
+
             response = {
-            "success":success
+            "response":response_func
             }
 
 

@@ -958,6 +958,15 @@ class Academician():
         cursor = connection.cursor()
 
         try:
+            cursor.execute('SELECT apply_project_id\
+            FROM Student WHERE student_no=%s', (student_no,) )
+
+            data = cursor.fetchone()
+
+            if data[0] is None:
+                return "apply_canceled"
+
+
             #Ana projenin bilgileri cekiliyor
             cursor.execute('SELECT project_name,project_type,proposal_type,fullness,capacity\
             FROM Project WHERE project_id=%s', (project_id,) )
@@ -970,7 +979,7 @@ class Academician():
             if data[2] == "academician":
                 #Eger belirlenen max kapasiteye ulasilmis ise. Hata donduruluyor
                 if data[3] == data[4]:
-                    return False
+                    return "max_capacity"
 
 
                 #Yeni olusturulan projenin adi siradaki indexe gore belirleniyor
@@ -997,7 +1006,7 @@ class Academician():
             WHERE Project.username=Academician.username AND Project.username=%s)',(set_project_id, "confirmed",None ,student_no, student_no, self.username))
 
 
-            return True
+            return "no_problem"
 
         finally:
             connection.commit()
