@@ -14,7 +14,8 @@ from io import BytesIO
 import datetime
 import zipfile
 import time
-from process import * 
+from process import *
+import re
 
 
 app = Flask(__name__)
@@ -77,21 +78,23 @@ def login_handle():
         #username_student_no can be username or student_no
         username_student_no = request.form['username']
         password = request.form['password']
-        user_type = request.form['tipsec']
 
-        if user_type == "student":
+        tip = None
+
+        if re.search("^[0-9]{7}",username_student_no):
             user = Student.find_by_student_no(username_student_no)
+            tip = "student"
 
         else:
             user = Academician.find_by_username(username_student_no)
-
+            tip = "academician"
 
 
         if user and check_password_hash(user.password, password):
             #Mevcut kullanici objesi session'da kaydediliyor
             session["user"] = user
             session["logged_in"] = True
-            session["user_type"] = request.form['tipsec']
+            session["user_type"] = tip
 
             return redirect(url_for("greeting"))
 
@@ -995,12 +998,17 @@ def academician_propose_project_handler():
                 project_name = request.form["project_name"]
                 project_type = request.form["tipsec"]
                 capacity = request.form["project_capacity"]
-                capacity = int(capacity)
 
 
-                #Veri tabani kaydi
-                academician.propose_project(project_name, project_type, capacity)
+                success = True
 
+                if re.search("^[1-9][0-9]*$", capacity) is None:
+                    success = False
+
+                if success:
+                    capacity = int(capacity)
+                    #Veri tabani kaydi
+                    academician.propose_project(project_name, project_type, capacity)
 
 
 
@@ -1020,9 +1028,10 @@ def academician_propose_project_handler():
 
                 #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
                 template_values_curr = {
-                    "success":True
+                    "success":success
 
                 }
+
 
                 return render_template("propose_project.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
 
@@ -1041,6 +1050,7 @@ def academician_propose_project_handler():
                     "PROCESS_7":PROCESS_7
 
                 }
+                return (str(e))
 
 
                 #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir

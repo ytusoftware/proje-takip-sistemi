@@ -847,7 +847,7 @@ class Academician():
 
         try:
             cursor.execute('INSERT INTO Project(project_name, project_type, username, proposal_type, app_count,fullness,capacity)\
-            VALUES (%s,%s,%s,%s)', (project_name, project_type, self.username, "academician",0,0,capacity) )
+            VALUES (%s,%s,%s,%s,%s,%s,%s)', (project_name, project_type, self.username, "academician",0,0,capacity) )
 
 
         finally:
