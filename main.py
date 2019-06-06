@@ -104,6 +104,25 @@ def login_handle():
 
 
 
+#KULLANICI REGISTER HANDLE
+@app.route('/register', methods = ["GET","POST"])
+def register_handle():
+    if request.method == "GET":
+        return render_template("register.html",error_source="no_error",success=False)
+
+    #POST
+    else:
+        student_no = request.form['student_no']
+
+        if re.search("^[0-9]?[0-9]011[0-9]{3}$",student_no):
+            error = Student.register_student(student_no)
+            if error:
+                return render_template("register.html",error_source="user_exists",success=False)
+
+            return render_template("register.html",error_source="no_error",success=True)
+
+
+        return render_template("register.html",error_source="wrong_format",success=False)
 
 
 
@@ -3027,6 +3046,133 @@ def system_reset_handler_2():
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
         return redirect(url_for("admin_login_handle"))
 
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Admin/Kayıt Onayı Bekleyen Öğrenciler
+#Sorumlu kişi: Çetin Tekin
+@app.route('/admin/register_pending_students',methods=["GET"])
+def register_pending_students_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("admin_logged_in"):
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+
+            try:
+
+                cursor.execute(
+                'SELECT student_no FROM Student WHERE active=%s', ("false",))
+
+                data = cursor.fetchall()
+
+                template_values_curr = {
+                "students":data
+                }
+
+                return render_template("admin_register_pending_students.html",template_values_curr=json.dumps(template_values_curr) )
+
+            finally:
+                connection.close()
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("admin_login_handle"))
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Admin/Kayıt Onayı Bekleyen Öğrenciler AJAX call ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/admin/confirm_registration',methods=["GET"])
+def confirm_registration_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("admin_logged_in"):
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+            op_type = request.args.get("op_type")
+            std_no = request.args.get("student_no")
+
+            admin = Admin()
+
+            success = "false"
+
+            #SMTP server giris
+            server = smtplib.SMTP("smtp.gmail.com:587")
+            server.ehlo()
+            server.starttls()
+            server.login(session["admin_username"], session["admin_password"])
+
+
+            try:
+
+                #Tum ogrencilerin hesabi aktiflestirilir
+                if op_type == "all":
+                    cursor.execute(
+                    'SELECT student_no FROM Student WHERE active=%s', ("false",))
+
+                    students = cursor.fetchall()
+
+                #Bir ogrenci secilip hesabi aktiflestiriliyorsa
+                elif op_type == "single":
+                    students = [[std_no]]
+
+
+                for std in students:
+                    student_no = std[0]
+
+                    generated_password = admin.generate_random_password()
+                    password_hash = generate_password_hash(generated_password)
+
+                    email = "l11"
+
+                    #Ogrenci numarasindan email generate ediliyor
+                    if len(student_no) == 8:
+                        email += student_no[:2]
+
+
+                    elif len(student_no) == 7:
+                        email += "0"
+                        email += student_no[:1]
+
+                    email += student_no[-3:]
+                    email += "@std.yildiz.edu.tr"
+
+
+                    #Kullaniciya sifresini mail ile  gonderme islemi
+                    body ="Merhaba " + student_no + ",\n\n" + generated_password + " sifresi ile sisteme giris yapabilirsiniz.\n\nYTU Proje Takip Sistemi Ekibi"
+                    message="Subject: {}\n\n{}".format("YTU Proje Takip Sistemi Hesap Sifreniz", body)
+                    server.sendmail(session["admin_username"], email, message)
+
+                    #Kullanici hesabi aktiflestirme islemi
+                    cursor.execute(
+                    'UPDATE Student SET active=%s, password=%s WHERE student_no=%s AND active=%s', ("true", password_hash, student_no, "false"))
+
+
+                success = "true"
+            except Exception as e:
+                return str(e)
+
+            finally:
+                connection.commit()
+                connection.close()
+                server.quit()
+
+                response = {"success":success}
+                return json.dumps(response)
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("admin_login_handle"))
 
 
 #Request Handler Bilgileri

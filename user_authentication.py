@@ -770,6 +770,24 @@ class Student():
             connection.close()
 
 
+
+    #Bu metot öğrencinin sisteme inaktif kaydını gerceklestirir
+    @classmethod
+    def register_student(cls,student_no):
+        connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+        cursor = connection.cursor()
+        error = True
+
+        try:
+            cursor.execute("INSERT INTO Student (student_no,active)\
+            VALUES (%s,%s)",(student_no,"false" ))
+            error = False
+        finally:
+            connection.commit()
+            connection.close()
+            return error
+
+
     #Bu metot objenin uye alanlarini sinif icerisinde set edip, objeyi return etmektedir.
     @classmethod
     def find_by_student_no(cls, student_no):

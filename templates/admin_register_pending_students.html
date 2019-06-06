@@ -1,0 +1,129 @@
+{% extends "admin_index.html" %}
+
+<!-- external js ve css dosyalari include etmek icin -->
+{% block includes %}
+<!--
+<link rel="stylesheet" href="/static/css/propose_project/propose_project.css">
+-->
+
+
+<!-- Bootstrap-select plugin import -->
+<script src="/static/js/bootstrap-select.min.js"></script>
+<link rel="stylesheet" href="/static/css/bootstrap-select.min.css">
+
+
+<script type="text/javascript" src="/static/js/admin_register_pending_students/admin_register_pending_students.js"></script>
+
+<!-- NOT: Bu js kodu burada yazilmak zorunda. External js dosyasina python degiskenlerini (jinja2 aracaligiyla gelen) aktarmak icin -->
+<script type="text/javascript">
+        var template_values_curr = JSON.parse('{{ template_values_curr|safe }}');
+        pass_func(template_values_curr);
+</script>
+
+{% endblock %}
+
+
+<!-- Ortadaki degisen alan icin HTML kodlar -->
+{% block content %}
+
+
+<div class="container-fluid">
+
+        <div id="title" class="row mb-4">
+                <div class="col">
+                        <h2><strong>Onay Bekleyen Kullanıcı Hesapları</strong></h2>
+
+                </div>
+
+        </div>
+
+
+        <form action="/admin/form2_council_decision" method="post" id="council_form">
+
+                <div class="form-group row ml-3">
+                        <label for="ogr_list">Öğrenci seçiniz.</label>
+                </div>
+                <div class="form-group row ml-3">
+                        <select id="ogr_list" name="ogr_list" data-live-search="true" class="col-6 selectpicker">
+                                <option selected value="no_choice">Seçiniz</option>
+                        </select>
+                </div>
+
+                <div class="form-group row ml-3">
+                        <label for="exampleFormControlTextarea1">Kurul kararı açıklaması (isteğe bağlı)</label>
+
+                </div>
+
+                <div class="form-group row ml-3">
+                        <textarea name="council_decision" class="col-5 form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                </div>
+
+
+
+
+                <div class="form-group row ml-3">
+                        <!-- Button trigger modal -->
+                        <button id="onay" name="click_any" type="button" class="col-2 btn btn-success" data-toggle="modal" data-target="#exampleModalCenter">
+                                Onayla
+                        </button>
+                        <button id="red" name="click_any" type="button" class="ml-2 col-2 btn btn-danger" data-toggle="modal" data-target="#exampleModalCenter2">
+                                Reddet
+                        </button>
+                </div>
+
+                <input type="hidden" id="op_type" name="op_type" value="">
+
+
+        </form>
+
+
+
+        <!-- Onay alma icin modal window -->
+        <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                                <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLongTitle">Form-2 Kurul Onayı Kararı</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                        </button>
+                                </div>
+                                <div class="modal-body">
+                                        Seçilen öğrencinin gönderdiği Form-2'yi kurul adına onaylamak istediğinize emin misiniz?
+                                </div>
+                                <div class="modal-footer">
+                                        <button id="onay" name="kaydet_button" type="button" class="btn btn-primary" data-dismiss="modal">Evet</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+                                </div>
+                        </div>
+                </div>
+        </div>
+
+
+
+
+        <!-- Onay alma icin modal window -->
+        <div class="modal fade" id="exampleModalCenter2" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                                <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLongTitle">Form-2 Kurul Red Kararı</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                        </button>
+                                </div>
+                                <div class="modal-body">
+                                        Seçilen öğrencinin gönderdiği Form-2'yi kurul adına reddetmek istediğinize emin misiniz?
+                                </div>
+                                <div class="modal-footer">
+                                        <button id="red" name="kaydet_button" type="button" class="btn btn-primary" data-dismiss="modal">Evet</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+                                </div>
+                        </div>
+                </div>
+        </div>
+
+</div>
+
+
+{% endblock %}

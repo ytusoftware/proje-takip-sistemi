@@ -37,8 +37,8 @@ class Admin:
             password_hash = generate_password_hash(self.generated_password)
 
             if user_type == "student":
-                cursor.execute("INSERT INTO Student (student_no,password,name,sname)\
-                VALUES (%s,%s,%s,%s)",( student_no_username, password_hash, name, sname ))
+                cursor.execute("INSERT INTO Student (student_no,password,name,sname, active)\
+                VALUES (%s,%s,%s,%s,%s)",( student_no_username, password_hash, name, sname, "true" ))
 
 
             else:
