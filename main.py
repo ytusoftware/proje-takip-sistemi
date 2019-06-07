@@ -45,6 +45,11 @@ def greeting():
         user = session["user"]
         user_type= session["user_type"]
 
+        template_values_curr = {
+            "first_timer":user.first_timer,
+            "user_type":user_type
+        }
+
         template_values = {
         "name":user.name,
         "sname":user.sname,
@@ -58,7 +63,7 @@ def greeting():
         "PROCESS_7":PROCESS_7
         }
 
-        return render_template("index.html", template_values=template_values )
+        return render_template("index.html", template_values=template_values, template_values_curr=json.dumps(template_values_curr) )
 
     return redirect(url_for("login_handle"))
 
@@ -71,8 +76,7 @@ def greeting():
 @app.route('/login', methods = ["GET","POST"])
 def login_handle():
     if request.method == "GET":
-        session["login_failure"] = False
-        return render_template("login.html",login_failure=session["login_failure"])
+        return render_template("login.html",login_failure="no_failure")
 
     else:
         #username_student_no can be username or student_no
@@ -91,16 +95,21 @@ def login_handle():
 
 
         if user and check_password_hash(user.password, password):
-            #Mevcut kullanici objesi session'da kaydediliyor
-            session["user"] = user
-            session["logged_in"] = True
-            session["user_type"] = tip
+            #Kullanici hesabi aktif mi?
+            if (tip=="student") and user.active == "false":
+                return render_template("login.html", login_failure="not_active")
 
-            return redirect(url_for("greeting"))
+            else:
+                #Mevcut kullanici objesi session'da kaydediliyor
+                session["user"] = user
+                session["logged_in"] = True
+                session["user_type"] = tip
+
+                return redirect(url_for("greeting"))
 
 
         session["login_failure"] = True
-        return render_template("login.html", login_failure=session["login_failure"])
+        return render_template("login.html", login_failure="not_exist")
 
 
 
@@ -3200,6 +3209,76 @@ def confirm_continuation_handler():
 
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
         return redirect(url_for("login_handle"))
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: /edit_info AJAX call ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/edit_info',methods=["POST"])
+def edit_info_handler():
+    if request.method == "POST":
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            modal_name = request.json['modal_name']
+            modal_sname = request.json['modal_sname']
+            modal_pass = request.json['modal_pass']
+
+
+            modal_pass = generate_password_hash(modal_pass)
+
+            user_type = session["user_type"]
+            user = session["user"]
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+            try:
+
+
+                if user_type == "student":
+                    cursor.execute('UPDATE Student \
+                    SET name=%s,sname=%s,password=%s,first_timer=%s \
+                    WHERE student_no=%s',(modal_name,modal_sname,modal_pass,"false",user.student_no))
+
+                    user.name = modal_name
+                    user.sname = modal_sname
+
+
+                elif user_type == "academician":
+                    cursor.execute('UPDATE Academician \
+                    SET password=%s,first_timer=%s \
+                    WHERE username=%s',(modal_pass,"false",user.username))
+
+
+
+
+                user.first_timer = "false"
+
+                session.pop("user", None)
+
+                session["user"] = user
+
+                success = {
+                    "success":"success"
+                }
+
+                response = json.dumps(success)
+
+                return response
+
+
+            finally:
+                connection.commit()
+                connection.close()
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
 
 if __name__ == '__main__':
    app.run(debug = True)

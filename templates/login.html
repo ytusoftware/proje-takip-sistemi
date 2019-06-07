@@ -31,8 +31,10 @@
 
                         <form action="/login" method="post">
                                 <p id="girisbaslik" class="cl2">Kullanıcı Girişi</p>
-                                {% if login_failure %}
+                                {% if login_failure == "not_exist" %}
                                 <p class="text-danger">Kullanıcı adı/öğrenci numarası veya şifre hatalı.</p>
+                                {% elif login_failure == "not_active" %}
+                                <p class="text-danger">Kullanıcı hesabı aktif değildir.</p>
                                 {% endif %}
                                 <p id="nickveyano">Kullanıcı Adı/Öğrenci Numarası</p>
                                 <div class="col-xs-3">

@@ -68,7 +68,7 @@ class Appointment:
 
 
 class Student():
-    def __init__(self, student_no, password, name, sname,continuation):
+    def __init__(self, student_no, password, name, sname,continuation, active, first_timer):
         #Class icerisinde sadece degerleri dinamik olarak degismeyen degerlerin (ogrenci no, isim & soyisim gibi) uye alanlari bulunmaktadir.
         #Sebebi asagidaki notta aciklanmistir.
         self.student_no = student_no
@@ -76,6 +76,8 @@ class Student():
         self.name = name
         self.sname = sname
         self.continuation = continuation
+        self.active = active
+        self.first_timer = first_timer
 
 
     #NOT: project, grade gibi alanlar icin class icerisinde uye alani kullanilmamistir. Cunku web tabanli uygulamada
@@ -795,11 +797,11 @@ class Student():
         cursor = connection.cursor()
 
         try:
-            cursor.execute('SELECT student_no,password,name,sname,continuation FROM Student WHERE student_no=%s', (student_no,))
+            cursor.execute('SELECT student_no,password,name,sname,continuation,active,first_timer FROM Student WHERE student_no=%s', (student_no,))
             data = cursor.fetchone()
             if data:
                 #cls mevcut sinifin contructor ini temsil etmektedir
-                instance = cls(data[0], data[1], data[2], data[3], data[4])
+                instance = cls(data[0], data[1], data[2], data[3], data[4], data[5], data[6])
                 return instance
         finally:
             connection.close()
@@ -809,11 +811,12 @@ class Student():
 
 
 class Academician():
-    def __init__(self, username, password, name, sname):
+    def __init__(self, username, password, name, sname, first_timer):
         self.username = username
         self.password = password
         self.name = name
         self.sname = sname
+        self.first_timer = first_timer
 
 
     #Gets all projects that belong to academician
@@ -1224,10 +1227,10 @@ class Academician():
 
 
         try:
-            cursor.execute('SELECT username,password,name,sname FROM Academician WHERE username=%s', (username,))
+            cursor.execute('SELECT username,password,name,sname, first_timer FROM Academician WHERE username=%s', (username,))
             data = cursor.fetchone()
             if data:
-                instance = cls(data[0], data[1], data[2], data[3])
+                instance = cls(data[0], data[1], data[2], data[3], data[4])
 
                 return instance
         finally:
