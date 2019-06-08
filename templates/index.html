@@ -1,166 +1,214 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta charset="utf-8">
-		<title>Ana Sayfa</title>
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/Index/myStyle1.css') }}"/>
-		<link rel="stylesheet" href="/static/css/bootstrap.min.css">
-		<!-- jQuery library -->
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
-		<script src="/static/js/popper.min.js"></script>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="utf-8">
+	<title>Ana Sayfa</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/Index/myStyle1.css') }}" />
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+	<!-- jQuery library -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
-		<!-- Latest compiled JavaScript -->
-		<script src="/static/js/bootstrap.min.js"></script>
+	<script src="/static/js/popper.min.js"></script>
 
-		<!-- Buradaki bloga cesitli sayfalar dinamik olarak includelarini ekleyecek -->
-		{% block includes %}
-		{% endblock %}
+	<!-- Latest compiled JavaScript -->
+	<script src="/static/js/bootstrap.min.js"></script>
 
-	</head>
-	<body>
-		<div class="container-fluid">
-			<div class="row bg-1">
-				<div class="col-sm-4 textCenter"><a href="/"><img src="/static/ytulogopng.png" class="img-circle img-responsive" width="200px;" height="200px;" ></a></div>
-				<div class="col-sm-8"><br/><br/><h2>Yıldız Teknik Üniversitesi Bilgisayar Mühendisliği</h2><h2>Proje Takip Sistemi</h2></div>
+	<!-- Buradaki bloga cesitli sayfalar dinamik olarak includelarini ekleyecek -->
+	{% block includes %}
+	<script type="text/javascript" src="/static/js/index/index.js"></script>
+
+	<script type="text/javascript">
+		var template_values_curr = JSON.parse('{{ template_values_curr|safe }}');
+		pass_func(template_values_curr);
+	</script>
+	{% endblock %}
+
+</head>
+
+<body>
+	<div class="container-fluid">
+		<div class="row bg-1">
+			<div class="col-sm-4 textCenter"><a href="/"><img src="/static/ytulogopng.png" class="img-circle img-responsive" width="200px;" height="200px;"></a></div>
+			<div class="col-sm-8"><br /><br />
+				<h2>Yıldız Teknik Üniversitesi Bilgisayar Mühendisliği</h2>
+				<h2>Proje Takip Sistemi</h2>
 			</div>
 		</div>
+	</div>
 
-		<div class="wrapper">
-			<!-- Sidebar -->
-			<nav id="sidebar">
-				<ul class="list-unstyled components">
-					<p class="menuHeader">Menu</p>
-					<hr/>
-					<li>
-						<a href="/">Ana Sayfa</a>
-					</li>
+	<div class="wrapper">
+		<!-- Sidebar -->
+		<nav id="sidebar">
+			<ul class="list-unstyled components">
+				<p class="menuHeader">Menu</p>
+				<hr />
+				<li>
+					<a href="/">Ana Sayfa</a>
+				</li>
 
-					<li>
-						<a href="#DuyuruSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Duyurular</a>
-						<ul class="collapse list-unstyled" id="DuyuruSubmenu">
-							{% if template_values["user_type"] == "academician" %}
-								<li>
-									<a href="/Notices/CreateNotice">Duyuru Yap</a>
-								</li>
-							{% endif %}
-							<li>
-								<a href="/Notices/GeneralNotices?page=1">Genel Duyurular</a>
-							</li>
-							<li>
-								<a href="/Notices/MyNotices?page=1">Duyurularım</a>
-							</li>
-						</ul>
-					</li>
-					<li>
-						<a href="#ProjeSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Proje İşlemleri</a>
-						<ul class="collapse list-unstyled" id="ProjeSubmenu">
-							<li>
-								<a href="/project/academician_proposals?page=1">Akademisyen Proje Önerileri</a>
-							</li>
-							{% if template_values["user_type"] == "student" %}
-							{% if template_values["PROCESS_1"] %}
-							<li>
-								<a href="/project/send_friend_request">Proje Arkadaşı Ekle</a>
-							</li>
-							{% endif %}
-							<li>
-								<a href="/project/my_sent_requests?page=1">Gönderilen Arkadaşlık İstekleri</a>
-							</li>
-							<li>
-								<a href="/project/my_received_requests?page=1">Gelen Arkadaşlık İstekleri</a>
-							</li>
-							<li>
-								<a href="/project/my_friend">Proje Arkadaşım</a>
-							</li>
-							{% if template_values["PROCESS_2"] %}
-							<li>
-								<a href="/project/apply_project">Proje Başvurusu Yap</a>
-							</li>
-							{% endif %}
-							<li>
-								<a href="/project/project_apply_status">Proje Başvurum</a>
-							</li>
-							{% if template_values["PROCESS_4"] %}
-							<li>
-								<a href="/project/send_form2">Form-2 Gönder</a>
-							</li>
-							{% endif %}
-							<li>
-								<a href="/project/form2_status">Form-2 Onay Durumu</a>
-							</li>
-							{% if template_values["PROCESS_7"] %}
-							<li>
-								<a href="/project/send_project_report">Proje Raporu Gönder</a>
-							</li>
-							{% endif %}
-							<li>
-								<a href="/project/sent_project_reports">Gönderilen Proje Raporları</a>
-							</li>
-
-							{% else %}
-							{% if template_values["PROCESS_1"] %}
-							<li>
-								<a href="/project/propose_project">Proje Öner</a>
-							</li>
-							{% endif %}
-							<li>
-								<a href="/project/my_proposals?page=1">Önerilen Projelerim</a>
-							</li>
-							{% if template_values["PROCESS_3"] %}
-							<li>
-								<a href="/project/student_project_applications?page=1">Öğrenci Proje Başvuruları</a>
-							</li>
-							{% endif %}
-							{% if template_values["PROCESS_5"] %}
-							<li>
-								<a href="/project/form2_pending_projects?page=1">Onay Bekleyen Form-2</a>
-							</li>
-							{% endif %}
-							<li>
-								<a href="/project/get_student_report">Öğrenci Proje Raporu İndir</a>
-							</li>
-							{% endif %}
-						</ul>
-					</li>
-
-					<li>
+				<li>
+					<a href="#DuyuruSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Duyurular</a>
+					<ul class="collapse list-unstyled" id="DuyuruSubmenu">
+						{% if template_values["user_type"] == "academician" %}
+						<li>
+							<a href="/Notices/CreateNotice">Duyuru Yap</a>
+						</li>
+						{% endif %}
+						<li>
+							<a href="/Notices/GeneralNotices?page=1">Genel Duyurular</a>
+						</li>
+						<li>
+							<a href="/Notices/MyNotices?page=1">Duyurularım</a>
+						</li>
+					</ul>
+				</li>
+				<li>
+					<a href="#ProjeSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Proje İşlemleri</a>
+					<ul class="collapse list-unstyled" id="ProjeSubmenu">
+						<li>
+							<a href="/project/academician_proposals?page=1">Akademisyen Proje Önerileri</a>
+						</li>
 						{% if template_values["user_type"] == "student" %}
-						<a href="/Grades/MyGrade">Proje Notu Görüntüle</a>
+						{% if template_values["PROCESS_1"] %}
+						<li>
+							<a href="/project/send_friend_request">Proje Arkadaşı Ekle</a>
+						</li>
+						{% endif %}
+						<li>
+							<a href="/project/my_sent_requests?page=1">Gönderilen Arkadaşlık İstekleri</a>
+						</li>
+						<li>
+							<a href="/project/my_received_requests?page=1">Gelen Arkadaşlık İstekleri</a>
+						</li>
+						<li>
+							<a href="/project/my_friend">Proje Arkadaşım</a>
+						</li>
+						{% if template_values["PROCESS_2"] %}
+						<li>
+							<a href="/project/apply_project">Proje Başvurusu Yap</a>
+						</li>
+						{% endif %}
+						<li>
+							<a href="/project/project_apply_status">Proje Başvurum</a>
+						</li>
+						{% if template_values["PROCESS_4"] %}
+						<li>
+							<a href="/project/send_form2">Form-2 Gönder</a>
+						</li>
+						{% endif %}
+						<li>
+							<a href="/project/form2_status">Form-2 Onay Durumu</a>
+						</li>
+						{% if template_values["PROCESS_7"] %}
+						<li>
+							<a href="/project/send_project_report">Proje Raporu Gönder</a>
+						</li>
+						{% endif %}
+						<li>
+							<a href="/project/sent_project_reports">Gönderilen Proje Raporları</a>
+						</li>
 
 						{% else %}
-						<a href="#NotSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Not İşlemleri</a>
-						<ul class="collapse list-unstyled" id="NotSubmenu">
-							<li>
-								<a href="/Grades/NotGirisSayfasi?page=1">Proje Not Girişi Yap</a>
-							</li>
-							<li>
-								<a href="/Grades/NotDüzenle?page=1">Proje Notları Görüntüle</a>
-							</li>
-						</ul>
+						{% if template_values["PROCESS_1"] %}
+						<li>
+							<a href="/project/propose_project">Proje Öner</a>
+						</li>
 						{% endif %}
+						<li>
+							<a href="/project/my_proposals?page=1">Önerilen Projelerim</a>
+						</li>
+						{% if template_values["PROCESS_3"] %}
+						<li>
+							<a href="/project/student_project_applications?page=1">Öğrenci Proje Başvuruları</a>
+						</li>
+						{% endif %}
+						{% if template_values["PROCESS_5"] %}
+						<li>
+							<a href="/project/form2_pending_projects?page=1">Onay Bekleyen Form-2</a>
+						</li>
+						{% endif %}
+						<li>
+							<a href="/project/get_student_report">Öğrenci Proje Raporu İndir</a>
+						</li>
+						{% endif %}
+					</ul>
+				</li>
 
-					</li>
-					<li>
-						<a href="/Profil">Profilim</a>
-					</li>
-					<li>
-						<a href="/logout">Çıkış</a>
-					</li>
+				<li>
+					{% if template_values["user_type"] == "student" %}
+					<a href="/Grades/MyGrade">Proje Notu Görüntüle</a>
 
-				</ul>
-			</nav>
-			{% block content %}
-			<!-- Page Content -->
-			<div id="content">
+					{% else %}
+					<a href="#NotSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Not İşlemleri</a>
+					<ul class="collapse list-unstyled" id="NotSubmenu">
+						<li>
+							<a href="/Grades/NotGirisSayfasi?page=1">Proje Not Girişi Yap</a>
+						</li>
+						<li>
+							<a href="/Grades/NotDüzenle?page=1">Proje Notları Görüntüle</a>
+						</li>
+					</ul>
+					{% endif %}
 
-						<h2>Merhaba <strong>{{ template_values["name"] }} {{ template_values["sname"] }}</strong>,</h2>
-						<h3>Sisteme hoş geldiniz.</h3>
+				</li>
+				<li>
+					<a href="/Profil">Profilim</a>
+				</li>
+				<li>
+					<a href="/logout">Çıkış</a>
+				</li>
+
+			</ul>
+		</nav>
+		{% block content %}
+		<!-- Page Content -->
+		<div id="content">
+
+			<h2>Merhaba <strong>{{ template_values["name"] }} {{ template_values["sname"] }}</strong>,</h2>
+			<h3>Sisteme hoş geldiniz.</h3>
 
 
-			</div>
-			{% endblock %}
 		</div>
-	</body>
+		{% endblock %}
+	</div>
+	<div class="modal hide" id="bilgiAlmaModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLongTitle1"><strong>Hesap Bilgisi Tamamlama İşlemi</strong></h5>
+				</div>
+				<div class="modal-body">
+					<div class="container-fluid">
+						<div class="row">
+							Hesabınızın güvenliği için gerekli bilgileri tamamlayınız.
+						</div>
+						<div class="row mt-3">
+							<input type="text" class="form-control" name="modal_name" id="modal_name" placeholder="İsim" autocomplete="off">
+						</div>
+
+						<div class="row mt-1">
+							<input type="text" class="form-control" name="modal_sname" placeholder="Soyisim" id="modal_sname" autocomplete="off">
+						</div>
+
+						<div class="row mt-1">
+							<input type="password" class="form-control" name="modal_pass" placeholder="Yeni Şifre" id="modal_pass" autocomplete="off">
+						</div>
+
+
+						<div class="row mt-1">
+							<input type="password" class="form-control" name="modal_pass_again" placeholder="Yeni Şifre Tekrar" id="modal_pass_again" autocomplete="off">
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button id="modal_onay_buton" type="button" class="btn btn-primary">Kaydet</button>
+					<button type="button" class="btn btn-secondary" onclick="location.href='/logout';">Çıkış Yap</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
 </html>

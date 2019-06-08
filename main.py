@@ -15,6 +15,7 @@ import datetime
 import zipfile
 import time
 from process import *
+import re
 
 
 app = Flask(__name__)
@@ -44,6 +45,11 @@ def greeting():
         user = session["user"]
         user_type= session["user_type"]
 
+        template_values_curr = {
+            "first_timer":user.first_timer,
+            "user_type":user_type
+        }
+
         template_values = {
         "name":user.name,
         "sname":user.sname,
@@ -57,7 +63,7 @@ def greeting():
         "PROCESS_7":PROCESS_7
         }
 
-        return render_template("index.html", template_values=template_values )
+        return render_template("index.html", template_values=template_values, template_values_curr=json.dumps(template_values_curr) )
 
     return redirect(url_for("login_handle"))
 
@@ -70,37 +76,62 @@ def greeting():
 @app.route('/login', methods = ["GET","POST"])
 def login_handle():
     if request.method == "GET":
-        session["login_failure"] = False
-        return render_template("login.html",login_failure=session["login_failure"])
+        return render_template("login.html",login_failure="no_failure")
 
     else:
         #username_student_no can be username or student_no
         username_student_no = request.form['username']
         password = request.form['password']
-        user_type = request.form['tipsec']
 
-        if user_type == "student":
+        tip = None
+
+        if re.search("^[0-9]{7}",username_student_no):
             user = Student.find_by_student_no(username_student_no)
+            tip = "student"
 
         else:
             user = Academician.find_by_username(username_student_no)
-
+            tip = "academician"
 
 
         if user and check_password_hash(user.password, password):
-            #Mevcut kullanici objesi session'da kaydediliyor
-            session["user"] = user
-            session["logged_in"] = True
-            session["user_type"] = request.form['tipsec']
+            #Kullanici hesabi aktif mi?
+            if (tip=="student") and user.active == "false":
+                return render_template("login.html", login_failure="not_active")
 
-            return redirect(url_for("greeting"))
+            else:
+                #Mevcut kullanici objesi session'da kaydediliyor
+                session["user"] = user
+                session["logged_in"] = True
+                session["user_type"] = tip
+
+                return redirect(url_for("greeting"))
 
 
         session["login_failure"] = True
-        return render_template("login.html", login_failure=session["login_failure"])
+        return render_template("login.html", login_failure="not_exist")
 
 
 
+#KULLANICI REGISTER HANDLE
+@app.route('/register', methods = ["GET","POST"])
+def register_handle():
+    if request.method == "GET":
+        return render_template("register.html",error_source="no_error",success=False)
+
+    #POST
+    else:
+        student_no = request.form['student_no']
+
+        if re.search("^[0-9]?[0-9]011[0-9]{3}$",student_no):
+            error = Student.register_student(student_no)
+            if error:
+                return render_template("register.html",error_source="user_exists",success=False)
+
+            return render_template("register.html",error_source="no_error",success=True)
+
+
+        return render_template("register.html",error_source="wrong_format",success=False)
 
 
 
@@ -995,12 +1026,17 @@ def academician_propose_project_handler():
                 project_name = request.form["project_name"]
                 project_type = request.form["tipsec"]
                 capacity = request.form["project_capacity"]
-                capacity = int(capacity)
 
 
-                #Veri tabani kaydi
-                academician.propose_project(project_name, project_type, capacity)
+                success = True
 
+                if re.search("^[1-9][0-9]*$", capacity) is None:
+                    success = False
+
+                if success:
+                    capacity = int(capacity)
+                    #Veri tabani kaydi
+                    academician.propose_project(project_name, project_type, capacity)
 
 
 
@@ -1020,9 +1056,10 @@ def academician_propose_project_handler():
 
                 #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
                 template_values_curr = {
-                    "success":True
+                    "success":success
 
                 }
+
 
                 return render_template("propose_project.html",template_values=template_values_index,template_values_curr=json.dumps(template_values_curr) )
 
@@ -1041,6 +1078,7 @@ def academician_propose_project_handler():
                     "PROCESS_7":PROCESS_7
 
                 }
+                return (str(e))
 
 
                 #Bu dictionary'de bu sayfada islemler sonucu olusturulan degiskenler aktarilir
@@ -3022,6 +3060,192 @@ def system_reset_handler_2():
 
 #Request Handler Bilgileri
 #-----------*-------------
+#Uygulama içerisinde ulaşmak için: Admin/Kayıt Onayı Bekleyen Öğrenciler
+#Sorumlu kişi: Çetin Tekin
+@app.route('/admin/register_pending_students',methods=["GET"])
+def register_pending_students_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("admin_logged_in"):
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+            page_offset = int(request.args.get("page"))
+            query_offset = (page_offset-1)*10
+
+
+            try:
+
+                cursor.execute(
+                'SELECT student_no FROM Student WHERE active=%s OFFSET %s LIMIT 11', ("false",query_offset))
+
+                data = cursor.fetchall()
+
+                disable_next_page = False
+
+                if data:
+                    num_of_students = len(data)
+                    if num_of_students < 11:
+                        disable_next_page = True
+
+
+                    else:
+                        #Son eleman silinir
+                        students = students[:-1]
+
+
+                template_values_curr = {
+                "students":data,
+                "disable_next_page":disable_next_page,
+                "init_page_num":int(request.args.get("page"))
+                }
+
+                return render_template("admin_register_pending_students.html",template_values_curr=json.dumps(template_values_curr) )
+
+            finally:
+                connection.close()
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("admin_login_handle"))
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Admin/Kayıt Onayı Bekleyen Öğrenciler AJAX call ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/admin/confirm_registration',methods=["GET"])
+def confirm_registration_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("admin_logged_in"):
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+            op_type = request.args.get("op_type")
+            std_no = request.args.get("student_no")
+
+            admin = Admin()
+
+            success = "false"
+
+            #SMTP server giris
+            server = smtplib.SMTP("smtp.gmail.com:587")
+            server.ehlo()
+            server.starttls()
+            server.login(session["admin_username"], session["admin_password"])
+
+
+            try:
+
+                #Tum ogrencilerin hesabi aktiflestirilir
+                if op_type == "all":
+                    cursor.execute(
+                    'SELECT student_no FROM Student WHERE active=%s', ("false",))
+
+                    students = cursor.fetchall()
+
+                #Bir ogrenci secilip hesabi aktiflestiriliyorsa
+                elif op_type == "single":
+                    students = [[std_no]]
+
+
+                for std in students:
+                    student_no = std[0]
+
+                    generated_password = admin.generate_random_password()
+                    password_hash = generate_password_hash(generated_password)
+
+                    email = "l11"
+
+                    #Ogrenci numarasindan email generate ediliyor
+                    if len(student_no) == 8:
+                        email += student_no[:2]
+
+
+                    elif len(student_no) == 7:
+                        email += "0"
+                        email += student_no[:1]
+
+                    email += student_no[-3:]
+                    email += "@std.yildiz.edu.tr"
+
+
+                    #Kullaniciya sifresini mail ile  gonderme islemi
+                    body ="Merhaba " + student_no + ",\n\n" + generated_password + " sifresi ile sisteme giris yapabilirsiniz.\n\nYTU Proje Takip Sistemi Ekibi"
+                    message="Subject: {}\n\n{}".format("YTU Proje Takip Sistemi Hesap Sifreniz", body)
+                    server.sendmail(session["admin_username"], email, message)
+
+                    #Kullanici hesabi aktiflestirme islemi
+                    cursor.execute(
+                    'UPDATE Student SET active=%s, password=%s WHERE student_no=%s AND active=%s', ("true", password_hash, student_no, "false"))
+
+
+                success = "true"
+            except Exception as e:
+                return str(e)
+
+            finally:
+                connection.commit()
+                connection.close()
+                server.quit()
+
+                response = {"success":success}
+                return json.dumps(response)
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("admin_login_handle"))
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Admin/Kayıt Onayı Bekleyen Öğrenciler AJAX call ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/admin/reject_registration',methods=["GET"])
+def reject_registration_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("admin_logged_in"):
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+            student_no = request.args.get("student_no")
+
+            try:
+
+                #Kullanici hesabi basvurusu silme islemi
+                cursor.execute(
+                'DELETE FROM Student WHERE student_no=%s AND active=%s', (student_no,"false"))
+
+                response = {"success":"success"}
+                return json.dumps(response)
+
+
+            except Exception as e:
+                return str(e)
+
+            finally:
+                connection.commit()
+                connection.close()
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("admin_login_handle"))
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
 #Uygulama içerisinde ulaşmak için: Proje/Devam Karari
 #Sorumlu kişi: Çetin Tekin
 @app.route('/grade/confirm_continuation',methods=["GET"])
@@ -3045,6 +3269,76 @@ def confirm_continuation_handler():
 
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
         return redirect(url_for("login_handle"))
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: /edit_info AJAX call ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/edit_info',methods=["POST"])
+def edit_info_handler():
+    if request.method == "POST":
+
+        #Giris yapildi mi?
+        if session.get("logged_in"):
+
+            modal_name = request.json['modal_name']
+            modal_sname = request.json['modal_sname']
+            modal_pass = request.json['modal_pass']
+
+
+            modal_pass = generate_password_hash(modal_pass)
+
+            user_type = session["user_type"]
+            user = session["user"]
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+            try:
+
+
+                if user_type == "student":
+                    cursor.execute('UPDATE Student \
+                    SET name=%s,sname=%s,password=%s,first_timer=%s \
+                    WHERE student_no=%s',(modal_name,modal_sname,modal_pass,"false",user.student_no))
+
+                    user.name = modal_name
+                    user.sname = modal_sname
+
+
+                elif user_type == "academician":
+                    cursor.execute('UPDATE Academician \
+                    SET password=%s,first_timer=%s \
+                    WHERE username=%s',(modal_pass,"false",user.username))
+
+
+
+
+                user.first_timer = "false"
+
+                session.pop("user", None)
+
+                session["user"] = user
+
+                success = {
+                    "success":"success"
+                }
+
+                response = json.dumps(success)
+
+                return response
+
+
+            finally:
+                connection.commit()
+                connection.close()
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("login_handle"))
+
+
 
 if __name__ == '__main__':
    app.run(debug = True)

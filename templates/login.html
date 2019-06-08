@@ -13,7 +13,6 @@
 
         <!-- Latest compiled JavaScript -->
         <script src="/static/js/bootstrap.min.js"></script>
-        <script async type="text/javascript" src="/static/js/login/login.js"></script>
         <link rel="stylesheet" href="/static/css/login/login.css">
 
         <link rel="stylesheet" href="/static/css/bootstrap.min.css">
@@ -28,18 +27,16 @@
                 <h1>Proje Takip Sistemi</h1>
         </div>
         <div class="text-center">
-
-
-
-
                 <div class="login-border">
 
                         <form action="/login" method="post">
-                                <p id="girisbaslik" class="cl2">Öğrenci Girişi</p>
-                                {% if login_failure %}
+                                <p id="girisbaslik" class="cl2">Kullanıcı Girişi</p>
+                                {% if login_failure == "not_exist" %}
                                 <p class="text-danger">Kullanıcı adı/öğrenci numarası veya şifre hatalı.</p>
+                                {% elif login_failure == "not_active" %}
+                                <p class="text-danger">Kullanıcı hesabı aktif değildir.</p>
                                 {% endif %}
-                                <p id="nickveyano">Öğrenci Numarası</p>
+                                <p id="nickveyano">Kullanıcı Adı/Öğrenci Numarası</p>
                                 <div class="col-xs-3">
                                         <input class="form-control" autocomplete="off" type="text" name="username">
                                 </div>
@@ -50,13 +47,8 @@
                                 </div>
                                 <br>
                                 <br>
-                                <input class="radio" checked="checked" name="tipsec" id="student" type="radio" value="student">Öğrenci Girişi
-                                <br>
-                                <br>
-                                <input class="radio" name="tipsec" id="academician" type="radio" value="academician">Akademisyen Girişi
-                                <br>
-                                <br>
                                 <input class="btn btn-primary" type="submit" value="Giriş Yap">
+                                <input class="btn btn-danger" type="button" onclick="location.href='/register';" value="Kayıt Ol" />
                                 <br>
                                 <br>
                         </form>
@@ -64,7 +56,6 @@
                 </div>
 
         </div>
-
 
 </body>
 
