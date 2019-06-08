@@ -31,99 +31,43 @@
 
         <div id="title" class="row mb-4">
                 <div class="col">
-                        <h2><strong>Onay Bekleyen Kullanıcı Hesapları</strong></h2>
-
+                        <h2>Onay Bekleyen Öğrenci Hesapları</h2>
                 </div>
 
         </div>
 
-
-        <form action="/admin/form2_council_decision" method="post" id="council_form">
-
-                <div class="form-group row ml-3">
-                        <label for="ogr_list">Öğrenci seçiniz.</label>
-                </div>
-                <div class="form-group row ml-3">
-                        <select id="ogr_list" name="ogr_list" data-live-search="true" class="col-6 selectpicker">
-                                <option selected value="no_choice">Seçiniz</option>
-                        </select>
-                </div>
-
-                <div class="form-group row ml-3">
-                        <label for="exampleFormControlTextarea1">Kurul kararı açıklaması (isteğe bağlı)</label>
-
-                </div>
-
-                <div class="form-group row ml-3">
-                        <textarea name="council_decision" class="col-5 form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
-                </div>
-
-
-
-
-                <div class="form-group row ml-3">
-                        <!-- Button trigger modal -->
-                        <button id="onay" name="click_any" type="button" class="col-2 btn btn-success" data-toggle="modal" data-target="#exampleModalCenter">
-                                Onayla
-                        </button>
-                        <button id="red" name="click_any" type="button" class="ml-2 col-2 btn btn-danger" data-toggle="modal" data-target="#exampleModalCenter2">
-                                Reddet
-                        </button>
-                </div>
-
-                <input type="hidden" id="op_type" name="op_type" value="">
-
-
-        </form>
-
-
-
-        <!-- Onay alma icin modal window -->
-        <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                        <div class="modal-content">
-                                <div class="modal-header">
-                                        <h5 class="modal-title" id="exampleModalLongTitle">Form-2 Kurul Onayı Kararı</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                        </button>
-                                </div>
-                                <div class="modal-body">
-                                        Seçilen öğrencinin gönderdiği Form-2'yi kurul adına onaylamak istediğinize emin misiniz?
-                                </div>
-                                <div class="modal-footer">
-                                        <button id="onay" name="kaydet_button" type="button" class="btn btn-primary" data-dismiss="modal">Evet</button>
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
-                                </div>
-                        </div>
-                </div>
+        <div name="be_deleted" id="search-box-parent" class="row mb-4 ml-1">
+                <input id="search-box" class="col-5 form-control" type="text" placeholder="Öğrenci No Ara..." aria-label="Search">
         </div>
 
+        <button name="be_deleted" type="button" class="btn btn-warning mb-4 ml-1" id="all_students">Tüm Hesapları Onayla</button>
+
+        <ul id="students" class="list-group">
+                <!-- Students will be displayed here -->
+        </ul>
 
 
 
-        <!-- Onay alma icin modal window -->
-        <div class="modal fade" id="exampleModalCenter2" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                        <div class="modal-content">
-                                <div class="modal-header">
-                                        <h5 class="modal-title" id="exampleModalLongTitle">Form-2 Kurul Red Kararı</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                        </button>
-                                </div>
-                                <div class="modal-body">
-                                        Seçilen öğrencinin gönderdiği Form-2'yi kurul adına reddetmek istediğinize emin misiniz?
-                                </div>
-                                <div class="modal-footer">
-                                        <button id="red" name="kaydet_button" type="button" class="btn btn-primary" data-dismiss="modal">Evet</button>
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
-                                </div>
-                        </div>
-                </div>
-        </div>
+        <!-- Paging -->
+
+        <nav name="be_deleted" class="mt-3 ml-1 row" aria-label="...">
+                <ul class="pagination">
+                        <li id="pageprev-li" class="page-item disabled">
+                                <a id="pageprev" class="page-link" href="" aria-label="Önceki">
+                                        <span aria-hidden="true">&laquo;</span>
+                                        <span class="sr-only">Previous</span>
+                                </a>
+                        </li>
+                        <li class="page-item disabled"><a id="pagenum" class="page-link">1</a></li>
+                        <li id="pagenext-li" class="page-item">
+                                <a id="pagenext" class="page-link" href="/admin/register_pending_students?page=2" aria-label="Sonraki">
+                                        <span aria-hidden="true">&raquo;</span>
+                                        <span class="sr-only">Next</span>
+                                </a>
+                        </li>
+                </ul>
+        </nav>
 
 </div>
-
 
 {% endblock %}

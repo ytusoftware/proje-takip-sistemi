@@ -3071,16 +3071,34 @@ def register_pending_students_handler():
             connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
             cursor = connection.cursor()
 
+            page_offset = int(request.args.get("page"))
+            query_offset = (page_offset-1)*10
+
 
             try:
 
                 cursor.execute(
-                'SELECT student_no FROM Student WHERE active=%s', ("false",))
+                'SELECT student_no FROM Student WHERE active=%s OFFSET %s LIMIT 11', ("false",query_offset))
 
                 data = cursor.fetchall()
 
+                disable_next_page = False
+
+                if data:
+                    num_of_students = len(data)
+                    if num_of_students < 11:
+                        disable_next_page = True
+
+
+                    else:
+                        #Son eleman silinir
+                        students = students[:-1]
+
+
                 template_values_curr = {
-                "students":data
+                "students":data,
+                "disable_next_page":disable_next_page,
+                "init_page_num":int(request.args.get("page"))
                 }
 
                 return render_template("admin_register_pending_students.html",template_values_curr=json.dumps(template_values_curr) )
@@ -3182,6 +3200,47 @@ def confirm_registration_handler():
 
         #Giris yapilmadiysa giris sayfasina yonlendirilir.
         return redirect(url_for("admin_login_handle"))
+
+
+
+
+#Request Handler Bilgileri
+#-----------*-------------
+#Uygulama içerisinde ulaşmak için: Admin/Kayıt Onayı Bekleyen Öğrenciler AJAX call ile
+#Sorumlu kişi: Çetin Tekin
+@app.route('/admin/reject_registration',methods=["GET"])
+def reject_registration_handler():
+    if request.method == "GET":
+
+        #Giris yapildi mi?
+        if session.get("admin_logged_in"):
+
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+
+            student_no = request.args.get("student_no")
+
+            try:
+
+                #Kullanici hesabi basvurusu silme islemi
+                cursor.execute(
+                'DELETE FROM Student WHERE student_no=%s AND active=%s', (student_no,"false"))
+
+                response = {"success":"success"}
+                return json.dumps(response)
+
+
+            except Exception as e:
+                return str(e)
+
+            finally:
+                connection.commit()
+                connection.close()
+
+
+        #Giris yapilmadiysa giris sayfasina yonlendirilir.
+        return redirect(url_for("admin_login_handle"))
+
 
 
 #Request Handler Bilgileri

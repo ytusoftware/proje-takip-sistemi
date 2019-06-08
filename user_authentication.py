@@ -467,7 +467,7 @@ class Student():
         cursor = connection.cursor()
 
         try:
-            cursor.execute('SELECT student_no,name,sname FROM Student WHERE student_no<>%s',(self.student_no,))
+            cursor.execute('SELECT student_no,name,sname FROM Student WHERE student_no<>%s AND active=%s AND first_timer=%s',(self.student_no,"true","false"))
             data = cursor.fetchall()
             return data
 
