@@ -90,7 +90,7 @@ def login_handle():
         if re.search("^[0-9]{7}",username_student_no):
             user = Student.find_by_student_no(username_student_no)
             tip = "student"
-            if user.active == "false":
+            if user and user.active == "false":
                 return render_template("login.html", login_failure="not_active")
 
         else:
