@@ -76,6 +76,8 @@ def greeting():
 @app.route('/login', methods = ["GET","POST"])
 def login_handle():
     if request.method == "GET":
+        if session.get("logged_in"):
+            return redirect(url_for("greeting"))
         return render_template("login.html",login_failure="no_failure")
 
     else:
@@ -88,6 +90,8 @@ def login_handle():
         if re.search("^[0-9]{7}",username_student_no):
             user = Student.find_by_student_no(username_student_no)
             tip = "student"
+            if user.active == "false":
+                return render_template("login.html", login_failure="not_active")
 
         else:
             user = Academician.find_by_username(username_student_no)
@@ -95,17 +99,30 @@ def login_handle():
 
 
         if user and check_password_hash(user.password, password):
-            #Kullanici hesabi aktif mi?
-            if (tip=="student") and user.active == "false":
-                return render_template("login.html", login_failure="not_active")
 
-            else:
-                #Mevcut kullanici objesi session'da kaydediliyor
-                session["user"] = user
-                session["logged_in"] = True
-                session["user_type"] = tip
+            current_date_time = datetime.datetime.today()
+            noticeTime= '{:%d/%m/%y %H:%M}'.format(current_date_time)
 
-                return redirect(url_for("greeting"))
+            connection = psycopg2.connect(DATABASE_URL, sslmode='allow')
+            cursor = connection.cursor()
+            #Login zamani kaydediliyor
+            try:
+                if tip == "student":
+                    cursor.execute('UPDATE Student SET last_login=%s WHERE student_no=%s', (noticeTime,user.student_no))
+
+                elif tip == "academician":
+                    cursor.execute('UPDATE Academician SET last_login=%s WHERE username=%s', (noticeTime,user.username))
+
+            finally:
+                connection.commit()
+                connection.close()
+
+            #Mevcut kullanici objesi session'da kaydediliyor
+            session["user"] = user
+            session["logged_in"] = True
+            session["user_type"] = tip
+
+            return redirect(url_for("greeting"))
 
 
         session["login_failure"] = True
