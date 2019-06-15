@@ -1,86 +1,77 @@
+<!DOCTYPE html>
 <html>
-    <head>
 
-        <style type="text/css">
+<head>
 
-             body {
-               background-color: #f2f2f2;
-               text-align: center;
-              }
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf-8">
+        <title>Kaydol</title>
+        <link rel="stylesheet" href="/static/css/login/login.css">
 
-             p.cl1 {
-                font-family: Arial Black,Arial Bold,Gadget,sans-serif;
-                font-weight: bold;
-                text-align: center;
+        <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+        <!-- jQuery library -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
+        <script src="/static/js/popper.min.js"></script>
 
-              }
+        <!-- Latest compiled JavaScript -->
+        <script src="/static/js/bootstrap.min.js"></script>
 
-              h1 {
+</head>
 
-                  margin-bottom: 60px;
-                  font-family:lucida sans unicode, lucida grande, sans-serif;
-
-              }
-
-              input[type=text] {
-
-                 box-sizing: border-box;
-                 border-radius: 4px;
-                 padding: 8px 10px;
-               }
-
-               input[type=password] {
-
-                  box-sizing: border-box;
-                  border-radius: 4px;
-                  padding: 8px 10px;
-                }
-
-              input[type=submit] {
-                  width: 20%;
-                  background-color: #4CAF50;
-                  color: white;
-                  padding: 12px 10px;
-                  margin-top: 15px;
-                  border-radius: 4px;
-                  cursor: pointer;
-
-               }
-
-             div {
-                 box-sizing: border-box;
-                 width: 600px;
-                 border: 5px solid #4CAF50;
-                 text-align: center;
-                 display: inline-block;
-                 margin-top: 140px;
-             }
-
-        </style>
+<body>
+        <div class="text-center">
 
 
-    </head>
-       <body>
-       <div>
-
-          <h1>Sisteme Kaydol</h1>
-           <br>
-          <form action="/register" method="post">
-               <p class="cl1">Öğrenci Numarası:</p>
-               <input autocomplete="off" type="text" name="username">
-               <br>
-               <p class="cl1">Şifre:</p>
-               <input autocomplete="off" type="password" name="password">
-               <br>
-               <p class="cl1">Şifre tekrar:</p>
-               <input autocomplete="off" type="password" name="password2">
-               <br>
-               <p class="cl1">E-posta: </p>
-               <input autocomplete="off" type="text" name="password2">
-               <br>
-               <input type="submit" value="Kaydol">
-          </form>
+                <img width="150px" height="150px" src="/static/ytulogopng.png" alt="YtuLogo" />
+                <h1>Proje Takip Sistemi</h1>
         </div>
-       </body>
+        <div class="container-fluid">
+
+                <div class="mt-3 text-center alert alert-primary alert-dismissible fade show" role="alert">
+                        <h4 class="alert-heading"><strong>UYARILAR</strong></h4>
+                        <hr>
+                        <p>1) Sisteme bu sayfa üzerinden kayıt olabilmek için YTÜ Bilgisayar Mühendisliği öğrencisi olmanız gerekmektedir.</p>
+                        <p>2) Öğrenci numarası bölüm kodu "011" olmayanlar, sisteme kayıt olabilmek için sistem yürütücüsü ile iletişime geçmelidir.</p>
+                        <p>3) Kullanıcı hesabı şifreleri, sistem yürütücüsü onayından geçtikten sonra "@std.yildiz.edu.tr" uzantılı öğrenci e-posta adreslerine gönderilecektir.</p>
+
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                        </button>
+                </div>
+        </div>
+
+        <div class="text-center">
+                <div class="login-border">
+
+                        <form action="/register" method="post">
+                                <p id="girisbaslik" class="cl2">Kullanıcı Kaydı</p>
+
+                                {% if error_source == "user_exists" %}
+                                <p class="text-danger">Öğrenci numarası sistemde kayıtlıdır.</p>
+
+                                {% elif error_source == "wrong_format" %}
+                                <p class="text-danger">Lütfen YTÜ Bilgisayar Mühendisliği öğrenci numarası giriniz.</p>
+
+                                {% elif success %}
+                                <p class="text-success">Kullanıcı kaydı talebi başarıyla alındı.</p>
+                                {% endif %}
+
+                                <div class="col-xs-3">
+                                        <input class="form-control" autocomplete="off" type="text" name="student_no" placeholder="Öğrenci Numarası">
+                                </div>
+                                <br>
+                                <br>
+                                <input class="btn btn-danger" type="submit" value="Kaydol">
+                                <input class="ml-2 btn btn-primary" type="button" onclick="location.href='/login';" value="Kullanıcı Girişi" />
+                                <br>
+                                <br>
+                        </form>
+
+                </div>
+
+        </div>
+
+</body>
+
 </html>
